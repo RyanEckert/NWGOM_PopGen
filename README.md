@@ -8,11 +8,9 @@
 ### version: 04 October, 2024
 
 ------------------------------------------------------------------------
-<img src="figures/figure1.png" width="425"/> 
+<img src="figures/figure1.png" width="650"/> 
 
 This repository contains scripts and data associated with the publication:
-
-<img src="https://media.springernature.com/w440/springer-static/cover-hires/journal/41437/133/3?as=webp&q=95"/>
 
 **XXX**
 
