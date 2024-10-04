@@ -1,7 +1,6 @@
 ---
-title: "nwgom population genetics"
+title: "NWGOM Population Genetics"
 author: "Ryan Eckert"
-date: "2024-04-29"
 output:
   html_document:
     theme: flatly
@@ -11,7 +10,7 @@ output:
 knit: (function(input, ...) {
     rmarkdown::render(
       input,
-      output_file = '../code/index.html',
+      output_file = '../data/index.html',
       envir = globalenv()
     )
   })

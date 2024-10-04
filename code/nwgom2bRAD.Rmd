@@ -8,11 +8,12 @@ output:
     toc_depth: 3
     toc_float: yes
 knit: (function(input, ...) {
-    )
     rmarkdown::render(
       input,
-      output_file = 'index.html',
+      output_file = '../code/index.html',
       envir = globalenv()
+    )
+  })
 editor_options: 
   chunk_output_type: console
 ---
@@ -298,7 +299,7 @@ conda create -n 2bRAD cutadapt
 ```
 
 Removing reads with qualities at ends less than Q15 for de novo analysis
-```{bash, low q reads}
+```{bash, si low q reads}
 cd 2bRAD/nwgom/sint/trimmedReads
 
 source activate 2bRAD
@@ -314,7 +315,7 @@ sbatch -o trimse.o%j -e trimse.e%j --mem=200GB trimse.sh
 
 ```
 
-```{bash, low q reads}
+```{bash, xm low q reads}
 cd ~/2bRAD/nwgom/xesto/trimmedReads
 
 source activate 2bRAD
@@ -330,7 +331,7 @@ sbatch -o trimse.o%j -e trimse.e%j --mem=200GB trimse.sh
 
 ```
 
-```{bash, low q reads}
+```{bash, of low q reads}
 cd ~/2bRAD/nwgom/ofav/trimmedReads
 
 source activate 2bRAD
@@ -377,7 +378,7 @@ cat sintFiltReadCounts
 
 <br>
 
-```{bash, readcounts sint}
+```{bash, readcounts ofav}
 cd ~/2bRAD/nwgom/ofav/trimmedReads
 
 echo '#!/bin/bash' >ofavReads
@@ -396,7 +397,7 @@ cat ofavFiltReadCounts
 
 <br>
 
-```{bash, readcounts sint}
+```{bash, readcounts xesto}
 cd ~/2bRAD/nwgom/xesto/trimmedReads
 
 echo '#!/bin/bash' >xestoReads
@@ -441,7 +442,7 @@ Construct denovo reference for aligning reads
 ### Remove symbiodiniaceae reads
 If you've not already, build a bt reference for the concatenated zoox genomes, otherwise skip ahead to the next chunk
 
-```{bash, symbiont genomes}
+```{bash, si symbiont genomes}
 mkdir ~/bin/symGenomes
 cd ~/bin/symGenomes
 echo "bowtie2-build symbConcatGenome.fasta symbConcatGenome" > bowtie2-build
@@ -576,13 +577,6 @@ srun awk '!($3>7 && $4==0) && $2!="seq"' all.uniq >all.tab
 
 ```
 
-```{bash, discard tags}
-cd ~/2bRAD/nwgom/xesto/filteredReads
-srun awk '!($3>7 && $4==0) && $2!="seq"' all.uniq >all.tab
-
-```
-
-
 Creating fasta file out of merged and filtered tags:
 ```{bash, fasta}
 cd ~/2bRAD/nwgom/sint/filteredReads
@@ -590,27 +584,9 @@ srun awk '{print ">"$1"\n"$2}' all.tab >all.fasta
 
 ```
 
-```{bash, fasta}
-cd ~/2bRAD/nwgom/xesto/filteredReads
-srun awk '{print ">"$1"\n"$2}' all.tab >all.fasta
-
-```
-
-
 Clustering allowing for up to 3 mismatches (-c 0.91); the most abundant sequence becomes reference
 ```{bash, cluster RAD tags}
 cd ~/2bRAD/nwgom/sint/filteredReads
-
-echo '#!/bin/bash' >cdhit
-echo cd-hit-est -i all.fasta -o cdh_alltags.fas -aL 1 -aS 1 -g 1 -c 0.91 -M 0 -T 0 >>cdhit
-sbatch --mem=200GB -e cdhit.e%j -o cdhit.o%j cdhit
-
-rm *.uni
-
-```
-
-```{bash, cluster RAD tags}
-cd ~/2bRAD/nwgom/xesto/filteredReads
 
 echo '#!/bin/bash' >cdhit
 echo cd-hit-est -i all.fasta -o cdh_alltags.fas -aL 1 -aS 1 -g 1 -c 0.91 -M 0 -T 0 >>cdhit
@@ -700,16 +676,6 @@ echo kraken2 --db ~/bin/krakenDB cdh_alltags.fas --threads 16 --classified-out c
 sbatch --mem=200GB -o krakenDB.o%j -e krakenDB.e%j krakenDB
 ```
 
-```{bash, run kraken}
-cd ~/2bRAD/nwgom/xesto/filteredReads
-
-echo '#!/bin/bash' >krakenDB
-echo kraken2 --db ~/bin/krakenDB cdh_alltags.fas --threads 16 --classified-out cdh_alltags.contam.fa --unclassified-out cdh_alltags.unclass.fa --report krakenDB.report --output krakenDB.out >>krakenDB
-
-sbatch --mem=200GB -o krakenDB.o%j -e krakenDB.e%j krakenDB
-```
-
-
 ### Construct denovo genome
 With 30 pseudo chromosomes from clean major allele tags
 ```{bash, denovo genome}
@@ -723,20 +689,8 @@ concatFasta.pl fasta=sint_denovo.fa num=30
 
 ```
 
-```{bash, denovo genome}
-cd ~/2bRAD/nwgom/xesto/filteredReads
-
-mkdir ../mappedReads
-mv cdh_alltags.unclass.fa ../mappedReads/xesto_denovo.fa
-cd ../mappedReads
-
-concatFasta.pl fasta=xesto_denovo.fa num=30
-
-```
-
-
 Format pseudo genome
-```{bash, format genome}
+```{bash, format genome sint}
 cd ~/2bRAD/nwgom/sint/mappedReads
 
 GENOME_FASTA=sint_denovo_cc.fasta
@@ -749,26 +703,12 @@ sbatch -o genomeBuild.o%j -e genomeBuild.e%j genomeBuild.sh
 
 ```
 
-```{bash, format genome}
-cd ~/2bRAD/nwgom/xesto/mappedReads
-
-GENOME_FASTA=xesto_denovo_cc.fasta
-
-echo '#!/bin/bash' >genomeBuild.sh
-echo bowtie2-build $GENOME_FASTA $GENOME_FASTA >>genomeBuild.sh
-echo samtools faidx $GENOME_FASTA >>genomeBuild.sh
-
-sbatch -o genomeBuild.o%j -e genomeBuild.e%j genomeBuild.sh
-
-```
-
-
 ## M A P P I N G &nbsp; R E A D S &nbsp; T O &nbsp; R E F E R E N C E
 ***
 Mapping reads to reference and formatting bam files
 
 Map reads to fake genome:
-```{bash, map reads}
+```{bash, map reads sint}
 cd ~/2bRAD/nwgom/sint/mappedReads
 
 mv ../filteredReads/*.un .
@@ -782,26 +722,9 @@ sbatch --mem=200GB maps.slurm
 
 ```
 
-```{bash, map reads}
-cd ~/2bRAD/nwgom/xesto/mappedReads
-
-mv ../filteredReads/*.un .
-mv ../filteredReads/symbionts .
-
-GENOME_FASTA=~/bin/xtGenome/xtGenome
-
-# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
-2bRAD_bowtie2_launcher.py -f trim -g $GENOME_FASTA --launcher -e reckert2017@fau.edu
-sbatch --mem=200GB maps.slurm
-
-```
-
 Do we have the right number of SAM files?
-```{bash, sam counts}
+```{bash, sam counts sint}
 cd ~/2bRAD/nwgom/sint/mappedReads
-ls *.sam | wc -l 
-
-cd ~/2bRAD/nwgom/xesto/mappedReads
 ls *.sam | wc -l 
 
 ```
@@ -809,19 +732,6 @@ ls *.sam | wc -l
 Checking alignment rates
 ```{bash, align rates}
 cd ~/2bRAD/nwgom/sint/mappedReads
-
->alignmentRates
-for F in `ls *trim.un`; do
-M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
-echo "$F.sam $M">>alignmentRates;
-done
-
-less alignmentRates
-
-```
-
-```{bash, align rates ofav}
-cd ~/2bRAD/nwgom/xesto/mappedReads
 
 >alignmentRates
 for F in `ls *trim.un`; do
@@ -848,40 +758,16 @@ sbatch --mem=200GB s2b.slurm
 
 ```
 
-```{bash, convert sam}
-cd ~/2bRAD/nwgom/xesto/mappedReads
-
->s2b
-for file in *.sam; do
-echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
-done
-
-launcher_creator.py -j s2b -n s2b -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
-sbatch --mem=200GB s2b.slurm
-
-```
-
-
 Do we have enough BAM files?
-```{bash, bam count}
+```{bash, bam count sint}
 cd ~/2bRAD/nwgom/sint/mappedReads
 ls *bam | wc -l  # should be the same number as number of trim files
-
-cd ~/2bRAD/nwgom/xesto/mappedReads
-ls *bam | wc -l 
 
 ```
 
 Clean up directory
-```{bash, clean bams}
+```{bash, clean bams sint}
 cd ~/2bRAD/nwgom/sint/mappedReads
-
-zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
-sbatch zip.slurm
-
-rm *.un
-
-cd ~/2bRAD/nwgom/xesto/mappedReads
 
 zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
 sbatch zip.slurm
@@ -894,7 +780,7 @@ rm *.un
 ## M A P P I N G &nbsp; R E A D S &nbsp; T O &nbsp; G E N O M E
 ***
 
-O. faveolata and M. cavernosa
+*M. cavernosa*, *O. faveolata*, and *X. muta* 
 
 If you haven't yet, format genomes for bowtie2:\
 ```{bash, format genome}
@@ -977,7 +863,7 @@ less zooxAlignmentRates
 
 
 Mapping reads to reference and formatting bam files
-```{bash, map reads}
+```{bash, map reads ofav}
 cd ~/2bRAD/nwgom/ofav
 mkdir mappedReads
 cd ~/2bRAD/nwgom/ofav/mappedReads
@@ -993,7 +879,7 @@ sbatch --mem=200GB maps.slurm
 
 ```
 
-```{bash, map reads}
+```{bash, map reads mcav}
 cd ~/2bRAD/nwgom/mcav
 mkdir mappedReads
 cd ~/2bRAD/nwgom/mcav/mappedReads
@@ -1041,7 +927,7 @@ ls *.sam | wc -l
 
 Checking alignment rates
 
-```{bash, align rates}
+```{bash, align rates ofav}
 cd ~/2bRAD/nwgom/ofav/mappedReads
 
 >alignmentRates
@@ -1055,7 +941,7 @@ less alignmentRates
 ```
 
 
-```{bash, align rates ofav}
+```{bash, align rates mcav}
 cd ~/2bRAD/nwgom/mcav/mappedReads
 
 >alignmentRates
@@ -1069,7 +955,7 @@ less alignmentRates
 ```
 
 
-```{bash, align rates}
+```{bash, align rates xesto}
 cd ~/2bRAD/nwgom/xesto/mappedReads
 
 >alignmentRates
@@ -1084,7 +970,7 @@ less alignmentRates
 
 ### Convert SAM files to BAM files
 BAM files will be used for genotyping, population structure, etc.
-```{bash, convert sam}
+```{bash, convert sam ofav}
 cd ~/2bRAD/nwgom/ofav/mappedReads
 
 >s2b
@@ -1097,7 +983,7 @@ sbatch --mem=200GB s2b.slurm
 
 ```
 
-```{bash, convert sam}
+```{bash, convert sam mcav}
 cd ~/2bRAD/nwgom/mcav/mappedReads
 
 >s2b
@@ -1110,7 +996,7 @@ sbatch --mem=200GB s2b.slurm
 
 ```
 
-```{bash, convert sam}
+```{bash, convert sam xesto}
 cd ~/2bRAD/nwgom/xesto/mappedReads
 
 >s2b
@@ -1125,7 +1011,7 @@ sbatch --mem=200GB s2b.slurm
 
 
 Do we have enough BAM files?
-```{bash, bam count}
+```{bash, bam count} 
 cd ~/2bRAD/nwgom/ofav/mappedReads
 ls *bam | wc -l  # should be the same number as number of trim files
 
@@ -1202,7 +1088,7 @@ ls *bam >bamsClones
 ```-baq 1```: realign around indels (not terribly relevant for 2bRAD reads mapped with --local option)
 ```-maxDepth```: highest total depth (sum over all samples) to assess; set to 10x number of samples
 ```-minInd```: the minimal number of individuals the site must be genotyped in. Reset to 50% of total N at this stage.
-```{bash, ANGSD}
+```{bash, sint ANGSD}
 cd ~/2bRAD/nwgom/sint/ANGSD
 
 export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 2190 -minInd 110"
@@ -1215,7 +1101,7 @@ sbatch --mem=200GB -o sintDD.o%j -e sintDD.e%j --mail-user=reckert2017@fau.edu -
 
 ```
 
-```{bash, ANGSD}
+```{bash, ofav ANGSD}
 cd ~/2bRAD/nwgom/ofav/ANGSD
 
 export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 1360 -minInd 68"
@@ -1228,7 +1114,7 @@ sbatch --mem=200GB -o ofavDD.o%j -e ofavDD.e%j --mail-user=reckert2017@fau.edu -
 
 ```
 
-```{bash, ANGSD}
+```{bash, xesto ANGSD}
 cd ~/2bRAD/nwgom/xesto/ANGSD
 
 export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 2150 -minInd 108"
@@ -1242,7 +1128,7 @@ sbatch --mem=200GB -o xestoDD.o%j -e xestoDD.e%j --mail-user=reckert2017@fau.edu
 ```
 
 
-```{bash, ANGSD}
+```{bash, mcav ANGSD}
 cd ~/2bRAD/nwgom/mcav/ANGSD
 
 export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 1810 -minInd 91"
@@ -1365,7 +1251,7 @@ sbatch --mem=200GB -o mcavClones.o%j -e mcavClones.e%j -p shortq7 --mail-type=AL
 
 
 Use ibs matrix to identify clones with hierachial clustering in ```R```. ```scp``` to local machine and run chunk below in ```R```
-```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+```{r, mcav Dendrogram With Clones, fig.dim = c(13, 4.75)}
 if (!require("pacman")) install.packages("pacman")
 setwd("~/GitHub/nwgom_popGen/data/")
 
@@ -1453,7 +1339,7 @@ ggsave("../figures/mcavCloneDend.png", plot = cloneDend, height = 9, width = 32,
 ```
 ![](../figures/cloneDend.png)
 
-```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+```{r, ofav Dendrogram With Clones, fig.dim = c(13, 4.75)}
 if (!require("pacman")) install.packages("pacman")
 setwd("~/GitHub/nwgom_popGen/data/")
 
@@ -1541,7 +1427,7 @@ ggsave("../figures/ofavCloneDend.png", plot = cloneDend, height = 9, width = 30,
 ```
 
 
-```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+```{r, sint Dendrogram With Clones, fig.dim = c(13, 4.75)}
 if (!require("pacman")) install.packages("pacman")
 setwd("~/GitHub/nwgom_popGen/data/")
 
@@ -1629,7 +1515,7 @@ ggsave("../figures/sintCloneDend.png", plot = cloneDend, height = 9, width = 30,
 ```
 
 
-```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+```{r, xesto Dendrogram With Clones, fig.dim = c(13, 4.75)}
 if (!require("pacman")) install.packages("pacman")
 setwd("~/GitHub/nwgom_popGen/data/")
 
@@ -1717,7 +1603,7 @@ ggsave("../figures/xestoCloneDend.png", plot = cloneDend, height = 8, width = 35
 ```
 
 ### Removing clones and re-running ANGSD
-```{bash, ANGSD no clones ofav}
+```{bash, ANGSD no clones sint}
 cd ~/2bRAD/nwgom/sint/ANGSD
 
 mkdir clones
@@ -1782,7 +1668,7 @@ sbatch --mem=200GB -o ofavNoClones.o%j -e ofavNoClones.e%j -p shortq7 --mail-typ
 
 ```
 
-```{bash, ANGSD no clones ofav}
+```{bash, ANGSD no clones xesto}
 cd ~/2bRAD/nwgom/xesto/ANGSD
 
 mkdir clones
@@ -1802,33 +1688,33 @@ sbatch --mem=200GB -o xestoNoClones.o%j -e xestoNoClones.e%j -p shortq7 --mail-t
 ```
 
 How many SNPs?
-```{bash, SNPs?}
+```{bash, mcav SNPs?}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+grep "filtering:" mcavNoClones.e*
+
+```
+5,989 SNPs
+
+```{bash, sint SNPs?}
 cd ~/2bRAD/nwgom/sint/ANGSD
 grep "filtering:" sintNoClones.e*
 
 ```
 17,652 SNPs
 
-```{bash, SNPs?}
-cd ~/2bRAD/nwgom/xesto/ANGSD
-grep "filtering:" xestoNoClones.e*
-
-```
-10,337    SNPs
-
-```{bash, SNPs?}
+```{bash, ofav SNPs?}
 cd ~/2bRAD/nwgom/ofav/ANGSD
 grep "filtering:" ofavNoClones.e*
 
 ```
 10,345 SNPs
 
-```{bash, SNPs?}
-cd ~/2bRAD/nwgom/mcav/ANGSD
-grep "filtering:" mcavNoClones.e*
+```{bash, xesto SNPs?}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+grep "filtering:" xestoNoClones.e*
 
 ```
-5,989 SNPs
+10,337    SNPs
 
 ## P O P U L A T I O N &nbsp; S T R U C T U R E
 ***
@@ -1926,7 +1812,7 @@ sbatch pcangsd.slurm
 
 
 Calculate population structure from genotype likelihoods using ```NGSadmix```: FIRST remove all clones/genotyping replicates! (we did this).
-```{bash, ngsadmix}
+```{bash, sint ngsadmix}
 cd ~/2bRAD/nwgom/sint/ANGSD
 mkdir ../ngsAdmix
 
@@ -1940,7 +1826,7 @@ cd ../ngsAdmix
 ```
 
 Create a file with 20 replicate simulations for each value of K 
-```{bash, ngsLaunch}
+```{bash, sint ngsLaunch}
 ngsAdmixLauncher.py -f sintNoClones.beagle.gz --maxK 10 -r 20 -n gomSint --launcher -e reckert2017@fau.edu
 
 sbatch --mem=200GB gomSintNgsAdmix.slurm
@@ -1948,7 +1834,7 @@ sbatch --mem=200GB gomSintNgsAdmix.slurm
 ```
 
 
-```{bash, ngsadmix}
+```{bash, ofav ngsadmix}
 cd ~/2bRAD/nwgom/ofav/ANGSD
 mkdir ../ngsAdmix
 
@@ -1962,7 +1848,7 @@ cd ../ngsAdmix
 ```
 
 Create a file with 20 replicate simulations for each value of K 
-```{bash, ngsLaunch}
+```{bash, ofav ngsLaunch}
 ngsAdmixLauncher.py -f ofavNoClones.beagle.gz --maxK 10 -r 20 -n gomOfav --launcher -e reckert2017@fau.edu
 
 sbatch --mem=200GB gomOfavNgsAdmix.slurm
@@ -1970,7 +1856,7 @@ sbatch --mem=200GB gomOfavNgsAdmix.slurm
 ```
 
 
-```{bash, ngsadmix}
+```{bash, mcav ngsadmix}
 cd ~/2bRAD/nwgom/mcav/ANGSD
 mkdir ../ngsAdmix
 
@@ -1984,7 +1870,7 @@ cd ../ngsAdmix
 ```
 
 Create a file with 20 replicate simulations for each value of K 
-```{bash, ngsLaunch}
+```{bash, mcav ngsLaunch}
 ngsAdmixLauncher.py -f mcavNoClones.beagle.gz --maxK 10 -r 20 -n gomMcav --launcher -e reckert2017@fau.edu
 
 sbatch --mem=200GB gomMcavNgsAdmix.slurm
@@ -1992,7 +1878,7 @@ sbatch --mem=200GB gomMcavNgsAdmix.slurm
 ```
 
 
-```{bash, ngsadmix}
+```{bash, xesto ngsadmix}
 cd ~/2bRAD/nwgom/xesto/ANGSD
 mkdir ../ngsAdmix
 
@@ -2006,7 +1892,7 @@ cd ../ngsAdmix
 ```
 
 Create a file with 20 replicate simulations for each value of K 
-```{bash, ngsLaunch}
+```{bash, xesto ngsLaunch}
 ngsAdmixLauncher.py -f xestoNoClones.beagle.gz --maxK 10 -r 20 -n gomXesto --launcher -e reckert2017@fau.edu
 
 sbatch --mem=200GB gomXestoNgsAdmix.slurm
@@ -2018,7 +1904,7 @@ Next, take the likelihood value from each run of NGSadmix and put them into a fi
 
 ####**S. intersepta**
 
-```{bash, logfile}
+```{bash, sint logfile}
 cd ~/2bRAD/nwgom/sint/ngsAdmix
 
 >gomSintNgsAdmixLogfile
@@ -2029,7 +1915,7 @@ done
 ```
 
 Format for CLUMPAK in R
-```{r, format Clumpak}
+```{r, sint format Clumpak}
 R
 
 #You are now using R in the terminal
@@ -2053,7 +1939,7 @@ cat gomSintNgsAdmixLogfile_formatted | wc -l
 ```
 
 make copies of .qopt files to run structure selector on (.Q files)
-```{bash, strselector format}
+```{bash, sint strselector format}
 for file in gomSint*.qopt; do
 filename=$(basename -- "$file" .qopt);
 cp "$file" "$filename".Q;
@@ -2069,7 +1955,7 @@ zip -r gomSintQ.zip gomSintQ
 
 #### **X. muta**
 
-```{bash, logfile}
+```{bash, xesto logfile}
 cd ~/2bRAD/nwgom/xesto/ngsAdmix
 
 >gomXestoNgsAdmixLogfile
@@ -2080,7 +1966,7 @@ done
 ```
 
 Format for CLUMPAK in R
-```{r, format Clumpak}
+```{r, xesto format Clumpak}
 R
 
 #You are now using R in the terminal
@@ -2104,7 +1990,7 @@ cat gomXestoNgsAdmixLogfile_formatted | wc -l
 ```
 
 make copies of .qopt files to run structure selector on (.Q files)
-```{bash, strselector format}
+```{bash, xesto strselector format}
 for file in gomXesto*.qopt; do
 filename=$(basename -- "$file" .qopt);
 cp "$file" "$filename".Q;
@@ -2120,7 +2006,7 @@ zip -r gomXestoQ.zip gomXestoQ
 
 #### **M. cavernosa**
 
-```{bash, logfile}
+```{bash, mcav logfile}
 cd ~/2bRAD/nwgom/mcav/ngsAdmix
 
 >gomMcavNgsAdmixLogfile
@@ -2131,7 +2017,7 @@ done
 ```
 
 Format for CLUMPAK in R
-```{r, format Clumpak}
+```{r, mcav format Clumpak}
 R
 
 #You are now using R in the terminal
@@ -2156,7 +2042,7 @@ cat gomMcavNgsAdmixLogfile_formatted | wc -l
 ```
 
 make copies of .qopt files to run structure selector on (.Q files)
-```{bash, strselector format}
+```{bash, mcav strselector format}
 for file in gomMcav*.qopt; do
 filename=$(basename -- "$file" .qopt);
 cp "$file" "$filename".Q;
@@ -2172,7 +2058,7 @@ zip -r gomMcavQ.zip gomMcavQ
 
 #### **O. faveolata**
 
-```{bash, logfile}
+```{bash, ofav logfile}
 cd ~/2bRAD/nwgom/ofav/ngsAdmix
 
 >gomOfavNgsAdmixLogfile
@@ -2183,7 +2069,7 @@ done
 ```
 
 Format for CLUMPAK in R
-```{r, format Clumpak}
+```{r, ofav format Clumpak}
 R
 
 #You are now using R in the terminal
@@ -2208,7 +2094,7 @@ cat gomOfavNgsAdmixLogfile_formatted | wc -l
 ```
 
 make copies of .qopt files to run structure selector on (.Q files)
-```{bash, strselector format}
+```{bash, ofav strselector format}
 for file in gomOfav*.qopt; do
 filename=$(basename -- "$file" .qopt);
 cp "$file" "$filename".Q;
