@@ -1,0 +1,77 @@
+Tue Oct  1 19:27:59 2024: Running validation tests on input files
+Tue Oct  1 19:27:59 2024: Finished validating - Submitting job to queue
+Tue Oct  1 19:27:59 2024: Job 1727800078 was submitted to queue.
+Tue Oct  1 19:29:31 2024: Job 1727800078 started running.
+Tue Oct  1 19:29:31 2024: Retrieving data from files for each K
+Tue Oct  1 19:29:31 2024: K=1 mean: -2554917.40365235
+Tue Oct  1 19:29:31 2024: K=1 standard deviation: 1.46079717350956e-06
+Tue Oct  1 19:29:31 2024: K=1 median: -2554917.4036515
+Tue Oct  1 19:29:31 2024: K=2 mean: -2541717.91499845
+Tue Oct  1 19:29:31 2024: K=2 standard deviation: 113.152002837134
+Tue Oct  1 19:29:31 2024: K=2 median: -2541666.5819145
+Tue Oct  1 19:29:31 2024: K=3 mean: -2528771.9561598
+Tue Oct  1 19:29:31 2024: K=3 standard deviation: 113.881902778908
+Tue Oct  1 19:29:31 2024: K=3 median: -2528775.317328
+Tue Oct  1 19:29:31 2024: K=4 mean: -2516199.10693845
+Tue Oct  1 19:29:31 2024: K=4 standard deviation: 169.168649042285
+Tue Oct  1 19:29:31 2024: K=4 median: -2516158.9702555
+Tue Oct  1 19:29:31 2024: K=5 mean: -2504126.80731755
+Tue Oct  1 19:29:31 2024: K=5 standard deviation: 194.047012667871
+Tue Oct  1 19:29:31 2024: K=5 median: -2504198.484329
+Tue Oct  1 19:29:31 2024: K=6 mean: -2492204.26542115
+Tue Oct  1 19:29:31 2024: K=6 standard deviation: 124.06646802194
+Tue Oct  1 19:29:31 2024: K=6 median: -2492194.526589
+Tue Oct  1 19:29:31 2024: K=7 mean: -2480389.41032275
+Tue Oct  1 19:29:31 2024: K=7 standard deviation: 287.774647893045
+Tue Oct  1 19:29:31 2024: K=7 median: -2480240.574467
+Tue Oct  1 19:29:31 2024: K=8 mean: -2469033.94466555
+Tue Oct  1 19:29:31 2024: K=8 standard deviation: 219.945624589668
+Tue Oct  1 19:29:31 2024: K=8 median: -2469016.832372
+Tue Oct  1 19:29:31 2024: K=9 mean: -2457704.29808465
+Tue Oct  1 19:29:31 2024: K=9 standard deviation: 275.883966767426
+Tue Oct  1 19:29:31 2024: K=9 median: -2457656.300641
+Tue Oct  1 19:29:31 2024: K=10 mean: -2446410.6698616
+Tue Oct  1 19:29:31 2024: K=10 standard deviation: 263.754615792304
+Tue Oct  1 19:29:31 2024: K=10 median: -2446457.009399
+Tue Oct  1 19:29:31 2024: Calculating Best K by Evanno
+Tue Oct  1 19:29:31 2024: Ln'(2) = 13199.4886539015
+Tue Oct  1 19:29:31 2024: Ln'(3) = 12945.9588386496
+Tue Oct  1 19:29:31 2024: Ln'(4) = 12572.8492213502
+Tue Oct  1 19:29:31 2024: Ln'(5) = 12072.2996208989
+Tue Oct  1 19:29:31 2024: Ln'(6) = 11922.541896401
+Tue Oct  1 19:29:31 2024: Ln'(7) = 11814.8550983993
+Tue Oct  1 19:29:31 2024: Ln'(8) = 11355.4656572007
+Tue Oct  1 19:29:31 2024: Ln'(9) = 11329.6465808996
+Tue Oct  1 19:29:31 2024: Ln'(10) = 11293.6282230499
+Tue Oct  1 19:29:31 2024: |Ln''(K=2)| = 253.529815251939
+Tue Oct  1 19:29:31 2024: |Ln''(K=3)| = 373.1096172994
+Tue Oct  1 19:29:31 2024: |Ln''(K=4)| = 500.549600451253
+Tue Oct  1 19:29:31 2024: |Ln''(K=5)| = 149.757724497933
+Tue Oct  1 19:29:31 2024: |Ln''(K=6)| = 107.68679800164
+Tue Oct  1 19:29:31 2024: |Ln''(K=7)| = 459.389441198669
+Tue Oct  1 19:29:31 2024: |Ln''(K=8)| = 25.8190763010643
+Tue Oct  1 19:29:31 2024: |Ln''(K=9)| = 36.0183578496799
+Tue Oct  1 19:29:31 2024: Delta(K=2) = 2.24061270587369
+Tue Oct  1 19:29:31 2024: Delta(K=3) = 3.27628541668961
+Tue Oct  1 19:29:31 2024: Delta(K=4) = 2.95887922073633
+Tue Oct  1 19:29:31 2024: Delta(K=5) = 0.771760010313875
+Tue Oct  1 19:29:31 2024: Delta(K=6) = 0.867976655727766
+Tue Oct  1 19:29:31 2024: Delta(K=7) = 1.59635132754782
+Tue Oct  1 19:29:31 2024: Delta(K=8) = 0.117388451574031
+Tue Oct  1 19:29:31 2024: Delta(K=9) = 0.130556183716337
+Tue Oct  1 19:29:31 2024: Max Delta K: 3.27628541668961
+Tue Oct  1 19:29:31 2024: Optimal K by Evanno is: 3
+Tue Oct  1 19:29:31 2024: Using median values of Ln Prob of Data to calculate Prob(K=k):
+Tue Oct  1 19:29:31 2024: Prob(K=1) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=10) = 1
+Tue Oct  1 19:29:31 2024: Prob(K=2) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=3) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=4) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=5) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=6) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=7) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=8) = 0
+Tue Oct  1 19:29:31 2024: Prob(K=9) = 0
+Tue Oct  1 19:29:31 2024: Max Probability: 1
+Tue Oct  1 19:29:31 2024: The k for which Prob(K=k) obtains the highest value is: 10
+Tue Oct  1 19:29:31 2024: Creating job zip file

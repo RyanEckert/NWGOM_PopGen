@@ -1,0 +1,136 @@
+
+Retrieving data from files for each K
+Data for K=1:
+mean: -776351.184032
+standard deviation: 2.38879200090923e-10
+median: -776351.184032
+Data for K=2:
+mean: -765068.6666902
+standard deviation: 0.0063983251297643
+median: -765068.6692915
+Data for K=3:
+mean: -760582.09025155
+standard deviation: 21.493213137245
+median: -760577.412849
+Data for K=4:
+mean: -756293.36600775
+standard deviation: 81.9166069463959
+median: -756279.6588075
+Data for K=5:
+mean: -752284.5413758
+standard deviation: 94.1478019476706
+median: -752262.2238785
+Data for K=6:
+mean: -748309.0788567
+standard deviation: 138.991764866045
+median: -748266.2749415
+Data for K=7:
+mean: -744390.5594042
+standard deviation: 103.191317947697
+median: -744367.517555
+Data for K=8:
+mean: -740603.3842443
+standard deviation: 137.006894651144
+median: -740600.076232
+Data for K=9:
+mean: -736840.4235038
+standard deviation: 152.151033360034
+median: -736883.2043
+Data for K=10:
+mean: -733173.27528955
+standard deviation: 125.991992083293
+median: -733173.762679
+Calculating Best K by Evanno..
+
+calculating Ln'(K) for each K..
+Ln'(K=2) = 11282.5173418004
+Ln'(K=3) = 4486.57643864991
+Ln'(K=4) = 4288.72424379981
+Ln'(K=5) = 4008.82463195012
+Ln'(K=6) = 3975.46251910017
+Ln'(K=7) = 3918.51945249969
+Ln'(K=8) = 3787.17515989998
+Ln'(K=9) = 3762.96074050013
+Ln'(K=10) = 3667.14821425022
+
+calculating |Ln''(K)| for each K..
+|Ln''(K=2)| = 6795.94090315048
+|Ln''(K=3)| = 197.8521948501
+|Ln''(K=4)| = 279.899611849687
+|Ln''(K=5)| = 33.3621128499508
+|Ln''(K=6)| = 56.9430666004773
+|Ln''(K=7)| = 131.344292599708
+|Ln''(K=8)| = 24.2144193998538
+|Ln''(K=9)| = 95.8125262499088
+
+calculating Delta K for each K..
+Delta(K=2) = 1062143.72751027
+Delta(K=3) = 9.20533349698409
+Delta(K=4) = 3.41688483304547
+Delta(K=5) = 0.354358913960564
+Delta(K=6) = 0.409686621760339
+Delta(K=7) = 1.272823094151
+Delta(K=8) = 0.176738692322821
+Delta(K=9) = 0.62971985226803
+Max Delta K: 1062143.72751027
+Optimal K by Evanno is: 2.
+
+Using median values of Ln Prob of Data to calculate Prob(K=k)..
+max median is -733173.762679
+calculating exp(median) for every k
+k: 1
+median: -776351.184032
+median-max: -43177.4213530001
+exp value: 0
+k: 10
+median: -733173.762679
+median-max: 0
+exp value: 1
+k: 2
+median: -765068.6692915
+median-max: -31894.9066125001
+exp value: 0
+k: 3
+median: -760577.412849
+median-max: -27403.65017
+exp value: 0
+k: 4
+median: -756279.6588075
+median-max: -23105.8961285001
+exp value: 0
+k: 5
+median: -752262.2238785
+median-max: -19088.4611995001
+exp value: 0
+k: 6
+median: -748266.2749415
+median-max: -15092.5122625001
+exp value: 0
+k: 7
+median: -744367.517555
+median-max: -11193.7548760001
+exp value: 0
+k: 8
+median: -740600.076232
+median-max: -7426.3135530001
+exp value: 0
+k: 9
+median: -736883.2043
+median-max: -3709.44162100018
+exp value: 0
+sum of all exp: 1
+calculating probability for each k:
+Prob(K=1) = 0
+Prob(K=10) = 1
+Prob(K=2) = 0
+Prob(K=3) = 0
+Prob(K=4) = 0
+Prob(K=5) = 0
+Prob(K=6) = 0
+Prob(K=7) = 0
+Prob(K=8) = 0
+Prob(K=9) = 0
+best k by Pritchard: 10
+max prob: 1
+Max Probability: 1
+Optimal K by Pritchard is: 10.

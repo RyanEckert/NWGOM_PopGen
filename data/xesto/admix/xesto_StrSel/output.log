@@ -1,0 +1,117 @@
+Wed Oct  2 00:50:33 2024: Job 1727801431 started running.
+Wed Oct  2 00:50:33 2024: Job Parameters:
+Wed Oct  2 00:50:33 2024: Input file: 1727801431.zip
+Wed Oct  2 00:50:33 2024: Input type: ADMIXTURE
+Wed Oct  2 00:50:33 2024: Admixture populations file: 1727801431.pop.admixlabel
+Wed Oct  2 00:50:33 2024: CLUMPP repeats: 2000
+Wed Oct  2 00:50:33 2024: CLUMPP search method: LargeKGreedy 
+Wed Oct  2 00:50:33 2024: MCL cluster size threshold: 0.1 (default)
+Wed Oct  2 00:50:33 2024: Extracting file: "1727801431.zip".
+Wed Oct  2 00:50:33 2024: Sorting input files by K
+Wed Oct  2 00:50:33 2024: Working on K=1
+Wed Oct  2 00:50:33 2024: Executing CLUMPP for K=1.
+Wed Oct  2 00:50:33 2024: Clustering K=1 with mcl.
+Wed Oct  2 00:50:33 2024: no cutoff was used
+Wed Oct  2 00:50:33 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:50:33 2024: Working on K=2
+Wed Oct  2 00:50:33 2024: Executing CLUMPP for K=2.
+Wed Oct  2 00:50:36 2024: Clustering K=2 with mcl.
+Wed Oct  2 00:50:36 2024: no cutoff was used
+Wed Oct  2 00:50:36 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:50:38 2024: Working on K=3
+Wed Oct  2 00:50:38 2024: Executing CLUMPP for K=3.
+Wed Oct  2 00:50:43 2024: Clustering K=3 with mcl.
+Wed Oct  2 00:50:43 2024: no cutoff was used
+Wed Oct  2 00:50:43 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:50:48 2024: Working on K=4
+Wed Oct  2 00:50:48 2024: Executing CLUMPP for K=4.
+Wed Oct  2 00:50:56 2024: Clustering K=4 with mcl.
+Wed Oct  2 00:50:56 2024: cutoff used: 0.98
+Wed Oct  2 00:50:56 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:50:59 2024: Executing CLUMPP for minor clusters.
+Wed Oct  2 00:51:00 2024: Working on K=5
+Wed Oct  2 00:51:00 2024: Executing CLUMPP for K=5.
+Wed Oct  2 00:51:12 2024: Clustering K=5 with mcl.
+Wed Oct  2 00:51:12 2024: cutoff used: 0.76
+Wed Oct  2 00:51:12 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:51:15 2024: Executing CLUMPP for minor clusters.
+Wed Oct  2 00:51:17 2024: Working on K=6
+Wed Oct  2 00:51:17 2024: Executing CLUMPP for K=6.
+Wed Oct  2 00:51:34 2024: Clustering K=6 with mcl.
+Wed Oct  2 00:51:34 2024: cutoff used: 0.70
+Wed Oct  2 00:51:34 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:51:41 2024: Executing CLUMPP for minor clusters.
+Wed Oct  2 00:51:43 2024: Working on K=7
+Wed Oct  2 00:51:43 2024: Executing CLUMPP for K=7.
+Wed Oct  2 00:52:06 2024: Clustering K=7 with mcl.
+Wed Oct  2 00:52:06 2024: cutoff used: 0.62
+Wed Oct  2 00:52:06 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:52:11 2024: Executing CLUMPP for minor clusters.
+Wed Oct  2 00:52:17 2024: Working on K=8
+Wed Oct  2 00:52:17 2024: Executing CLUMPP for K=8.
+Wed Oct  2 00:52:47 2024: Clustering K=8 with mcl.
+Wed Oct  2 00:52:47 2024: no cutoff was used
+Wed Oct  2 00:52:47 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:53:17 2024: Working on K=9
+Wed Oct  2 00:53:17 2024: Executing CLUMPP for K=9.
+Wed Oct  2 00:53:54 2024: Clustering K=9 with mcl.
+Wed Oct  2 00:53:54 2024: cutoff used: 0.76
+Wed Oct  2 00:53:54 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:53:57 2024: Executing CLUMPP for minor clusters.
+Wed Oct  2 00:54:01 2024: Working on K=10
+Wed Oct  2 00:54:01 2024: Executing CLUMPP for K=10.
+Wed Oct  2 00:54:47 2024: Clustering K=10 with mcl.
+Wed Oct  2 00:54:47 2024: cutoff used: 0.71
+Wed Oct  2 00:54:47 2024: Executing CLUMPP for major cluster.
+Wed Oct  2 00:55:16 2024: Executing CLUMPP for minor clusters.
+Wed Oct  2 00:55:17 2024: Calling distruct for K=1.MajorCluster
+Wed Oct  2 00:55:18 2024: Calculating best Average Distance between K=1 and K=2..
+Wed Oct  2 00:55:18 2024: Calling distruct for K=2.MajorCluster
+Wed Oct  2 00:55:18 2024: Calculating best Average Distance between K=2 and K=3..
+Wed Oct  2 00:55:18 2024: Calling distruct for K=3.MajorCluster
+Wed Oct  2 00:55:18 2024: Calculating best Average Distance between K=3 and K=4..
+Wed Oct  2 00:55:18 2024: Calling distruct for K=4.MajorCluster
+Wed Oct  2 00:55:19 2024: Calculating best Average Distance between K=4 and K=5..
+Wed Oct  2 00:55:19 2024: Calling distruct for K=5.MajorCluster
+Wed Oct  2 00:55:19 2024: Calculating best Average Distance between K=5 and K=6..
+Wed Oct  2 00:55:20 2024: Calling distruct for K=6.MajorCluster
+Wed Oct  2 00:55:20 2024: Calculating best Average Distance between K=6 and K=7..
+Wed Oct  2 00:55:26 2024: Calling distruct for K=7.MajorCluster
+Wed Oct  2 00:55:26 2024: Calculating best Average Distance between K=7 and K=8..
+Wed Oct  2 00:56:20 2024: Calling distruct for K=8.MajorCluster
+Wed Oct  2 00:56:20 2024: Calculating best Average Distance between K=8 and K=9..
+Wed Oct  2 00:56:20 2024: Calling distruct for K=9.MajorCluster
+Wed Oct  2 00:56:21 2024: Calculating best Average Distance between K=9 and K=10..
+Wed Oct  2 00:56:21 2024: Calling distruct for K=10.MajorCluster
+Wed Oct  2 00:56:21 2024: Calculating best Average Distance between large cluster and K=4.MinorCluster1..
+Wed Oct  2 00:56:21 2024: Calling distruct for K=4.MinorCluster1
+Wed Oct  2 00:56:21 2024: Calculating best Average Distance between large cluster and K=5.MinorCluster1..
+Wed Oct  2 00:56:21 2024: Calling distruct for K=5.MinorCluster1
+Wed Oct  2 00:56:22 2024: Calculating best Average Distance between large cluster and K=5.MinorCluster2..
+Wed Oct  2 00:56:22 2024: Calling distruct for K=5.MinorCluster2
+Wed Oct  2 00:56:22 2024: Calculating best Average Distance between large cluster and K=6.MinorCluster1..
+Wed Oct  2 00:56:23 2024: Calling distruct for K=6.MinorCluster1
+Wed Oct  2 00:56:23 2024: Calculating best Average Distance between large cluster and K=7.MinorCluster1..
+Wed Oct  2 00:56:29 2024: Calling distruct for K=7.MinorCluster1
+Wed Oct  2 00:56:29 2024: Calculating best Average Distance between large cluster and K=9.MinorCluster1..
+Wed Oct  2 00:56:29 2024: Calling distruct for K=9.MinorCluster1
+Wed Oct  2 00:56:30 2024: Calculating best Average Distance between large cluster and K=9.MinorCluster2..
+Wed Oct  2 00:56:30 2024: Calling distruct for K=9.MinorCluster2
+Wed Oct  2 00:56:30 2024: Calculating best Average Distance between large cluster and K=9.MinorCluster3..
+Wed Oct  2 00:56:30 2024: Calling distruct for K=9.MinorCluster3
+Wed Oct  2 00:56:30 2024: Calculating best Average Distance between large cluster and K=9.MinorCluster4..
+Wed Oct  2 00:56:30 2024: Calling distruct for K=9.MinorCluster4
+Wed Oct  2 00:56:31 2024: Calculating best Average Distance between large cluster and K=10.MinorCluster1..
+Wed Oct  2 00:56:31 2024: Calling distruct for K=10.MinorCluster1
+Wed Oct  2 00:56:31 2024: Creating job summary PDF
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=1
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=2
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=3
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=4
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=5
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=6
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=7
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=8
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=9
+Wed Oct  2 00:56:31 2024: Creating job summary PDF for K=10
+Wed Oct  2 00:56:31 2024: Creating job zip file

@@ -1,0 +1,2335 @@
+---
+title: "NWGOM 2bRAD"
+author: "Ryan Eckert"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+knit: (function(input, ...) {
+    )
+    rmarkdown::render(
+      input,
+      output_file = 'index.html',
+      envir = globalenv()
+editor_options: 
+  chunk_output_type: console
+---
+<a href="https://github.com/RyanEckert/Stephanocoenia_FKNMS_PopGen" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#2C3E50; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+#### version: `r library(magrittr)` `r Sys.Date() %>% format(format="%B %d, %Y")`
+
+#### [GitHub repository](https://github.com/RyanEckert/Stephanocoenia_FKNMS_PopGen.git){target="_blank"}
+
+## A B O U T &nbsp; T H I S &nbsp; D O C U M E N T
+
+This walks through the steps to process 2bRAD reads with and without an existing genome.
+
+Be sure to read through what you are doing and follow instructions before copy/pasting code chunks.
+
+Copy the code chunks into your terminal, taking care to change the necessary portions to fit your data/ your directory structure, etc.
+
+First, you will need to replace ```reckert2017``` with your user name and ```reckert2017@fau.edu``` with your email throughout this code.
+
+***
+
+## S E T U P 
+***
+
+Download all necessary scripts and load modules for processing/analysis
+
+### Login to KoKo
+```{r, login}
+ssh reckert2017@koko-login.hpc.fau.edu
+
+```
+
+### Load necessary modules 
+or you can add to ~/.bashrc to load at login (use ```nano .bashrc```)
+```{bash, load modules}
+module load angsd-0.933-gcc-9.2.0-65d64pp
+module load bayescan-2.1-gcc-8.3.0-7gakqmd
+module load qt-5.15.2-gcc-9.2.0-zi7wcem BayeScEnv/1.1
+module load bcftools-1.9-gcc-8.3.0-il4d373
+module load bowtie2-2.3.5.1-gcc-8.3.0-63cvhw5
+module load cdhit-4.8.1-gcc-8.3.0-bcay75d
+module load htslib-1.9-gcc-8.3.0-jn7ehrc
+module load kraken2-2.1.1-gcc-9.2.0-ocivj3u
+module load python-3.7.4-gcc-8.3.0-3tniqr5
+module load launcher
+module load miniconda3-4.6.14-gcc-8.3.0-eenl5dj
+module load ncbi-toolkit-22_0_0-gcc-9.2.0-jjhd2wa
+module load ngsadmix-32-gcc-8.3.0-qbnwmpq
+module load ngsRelate/v2
+module load R/3.6.1
+module load samtools-1.10-gcc-8.3.0-khgksad
+module load vcftools-0.1.14-gcc-8.3.0-safy5vc
+
+```
+
+### Download scripts 
+Put scripts needed into ~/bin or similar directory that is mapped in .bashrc path
+IF you don't have a ```bin``` directory in your ```$HOME``` you can make one now (```mkdir ~/bin```) 
+```{bash, download scripts}
+cd ~/bin
+svn checkout https://github.com/RyanEckert/Stephanocoenia_FKNMS_PopGen/trunk/scripts/
+mv scripts/* .
+rm scripts
+
+wget http://www.cmpg.unibe.ch/software/PGDSpider/PGDSpider_2.0.7.1.zip
+unzip PGDSpider_2.0.7.1.zip
+rm PGDSpider_2.0.7.1.zip
+
+git clone https://github.com/Rosemeis/pcangsd.git
+cd pcangsd
+
+conda activate 2bRAD
+
+pip install --user -r requirements.txt
+python setup.py build_ext --inplace
+pip3 install -e .
+
+cd ~/bin
+
+git clone https://bitbucket.org/simongravel/moments.git
+cd moments
+
+conda activate 2bRAD
+
+conda install -c bioconda moments
+
+pip install --user -r requirements.txt
+python setup.py build_ext --inplace
+pip3 install -e .
+
+svn checkout https://github.com/xiaoming-liu/stairway-plot-v2.git
+
+mv stairway-plot-v2.git/trunk/stairway_plot_v2.1.1.zip .
+unzip stairway_plot_v2.1.1.zip
+rm -r stairway_plot_v2.1.1.zip stairway-plot-v2.git
+
+```
+
+Make all scripts executable
+```{bash, scripts +x}
+chmod +x *.sh *.pl *.py
+
+```
+
+IF not already, it is useful to add ```~/bin``` to your ```$PATH``` <br>
+This way you can easily access your executable scripts without specifying the absolute path to them. <br>
+Otherwise skip to "Build working directory"
+```{bash, bin path}
+PATH="$HOME/bin:$PATH";
+
+```
+
+To permanently add this to your ```$PATH``` add to ```.bashrc``` use ```nano``` text editor
+
+```{bash, bashrc}
+nano ~/.bashrc
+
+```
+
+ADD the following text to file under PATHS section if in your .bashrc:
+```export PATH="$HOME/bin:$PATH";``` <br>
+exit nano with ctrl+x
+
+```{bash, source bashrc}
+source ~/.bashrc
+echo $PATH
+
+```
+
+### Build working directory
+```{bash, wd}
+cd
+mkdir 2bRAD
+mkdir 2bRAD/nwgom/
+mkdir 2bRAD/nwgom/rawReads/
+
+
+```
+<br>
+
+## D O W N L O A D &nbsp; R E A D S 
+***
+
+### Download and concatenate raw reads from BaseSpace
+
+If you have not previously, download BaseSpaceCLI
+```{bash, bs dl}
+wget "https://launch.basespace.illumina.com/CLI/latest/amd64-linux/bs" -O $HOME/bin/bs
+
+chmod +x ~/bin/bs
+
+```
+
+Go to the website and confirm authorization by logging in to your basespace acct.
+```{bash, bs}
+bs auth
+
+```
+
+Making a script to download the reads and merge samples across 2 NovaSeq lanes
+```{bash, download}
+cd 2bRAD/nwgom/rawReads/
+
+echo '#!/bin/bash' > downloadReads.sh
+echo 'bs download project --concurrency=high -q -n JA23123 -o .' >> downloadReads.sh
+# -n is the project name and -o is the output directory
+echo 'bs download project --concurrency=high -q -n JA23124 -o .' >> downloadReads.sh
+
+echo "find . -name '*.gz' -exec mv {} . \;" >> downloadReads.sh
+echo 'rmdir SA*' >>downloadReads.sh
+echo 'mkdir ../concatReads' >> downloadReads.sh
+echo 'cp *.gz ../concatReads' >> downloadReads.sh
+echo 'cd ../concatReads' >> downloadReads.sh
+echo 'mergeReads.sh -o mergeTemp' >> downloadReads.sh
+# -o is the directory to put output files in
+
+echo 'rm *L00*' >> downloadReads.sh
+echo "find . -name '*.gz' -exec mv {} . \;" >> downloadReads.sh
+echo 'rmdir mergeTemp' >> downloadReads.sh
+
+chmod +x downloadReads.sh
+
+launcher_creator.py -b 'srun downloadReads.sh' -n downloadReads -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch downloadReads.slurm
+
+```
+<br>
+
+How many reads before filtering?
+```{bash, read counts}
+cd ../concatReads
+
+zipper.py --gunzip --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+echo '#!/bin/bash' >rawReads
+echo readCounts.sh -e .fastq -o sintRaw >>rawReads
+
+sbatch -o rawReads.o%j -e rawReads.e%j rawReads --mail-type=ALL --mail-user=reckert2017@fau.edu
+
+```
+
+## T R I M M I N G &nbsp; & &nbsp; F I L T E R I N G
+***
+
+### Trim and demultiplex reads
+```{bash, trim}
+cd ~2bRAD/nwgom/concatReads
+
+2bRAD_trim_launch_dedup.pl fastq > trims.sh
+launcher_creator.py -j trims.sh -n trims -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB trims.slurm
+
+```
+
+Check that we have the correct number of trim files 
+```{bash, check count}
+ls -l *.tr0 | wc -l
+
+mkdir ../trimmedReads
+srun mv *.tr0 ../trimmedReads &
+
+zipper.py -f fastq -a -9 --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB zip.slurm
+
+cd ../trimmedReads
+```
+
+Rename sequence files using sampleRename.py
+This script needs a .csv with XXX
+Make sure you use the reverse complement of your inline BCs!
+```{bash, remame py}
+srun sampleRename.py -i sampleID -f tr0
+
+```
+
+I am also adding M. cavernosa samples and geyer bank samples at this point
+
+finally, renaming everything to consistent new names
+```{bash, rename2}
+srun sampleRename.py -i nwgomRename -f tr0
+
+```
+
+Split by species at this point
+```{bash, split}
+mkdir ../ofav
+mkdir ../sint
+mkdir ../xesto
+mkdir ../mcav
+
+mkdir ../ofav/trimmedReads
+mkdir ../sint/trimmedReads
+mkdir ../xesto/trimmedReads
+mkdir ../mcav/trimmedReads
+
+mv OGM* ../ofav/trimmedReads
+mv SGM* ../sint/trimmedReads
+mv XGM* ../xesto/trimmedReads
+mv MGM* ../mcav/trimmedReads
+mv nwgom* ../mcav/trimmedReads
+
+finally, renaming everything to consistent new names
+
+```
+
+
+
+### Quality filtering using cutadapt
+I can't get KoKo's module for cutadapt to work, so we'll do it in miniconda.
+Run below if you don't have a conda env. set up, otherwise you can skip to the next chunk
+
+```{bash, conda}
+module load miniconda3-4.6.14-gcc-8.3.0-eenl5dj
+conda config --add channels defaults
+conda config --add channels bioconda
+conda create -n 2bRAD cutadapt
+
+```
+
+Removing reads with qualities at ends less than Q15 for de novo analysis
+```{bash, low q reads}
+cd 2bRAD/nwgom/sint/trimmedReads
+
+source activate 2bRAD
+
+echo '#!/bin/bash' > trimse.sh
+echo 'module load miniconda3-4.6.14-gcc-8.3.0-eenl5dj' >> trimse.sh
+echo 'source activate 2bRAD' >> trimse.sh
+for file in *.tr0; do
+echo "cutadapt -q 15,15 -m 36 -o ${file/.tr0/}.trim $file > ${file/.tr0/}.trimlog.txt" >> trimse.sh;
+done
+
+sbatch -o trimse.o%j -e trimse.e%j --mem=200GB trimse.sh
+
+```
+
+```{bash, low q reads}
+cd ~/2bRAD/nwgom/xesto/trimmedReads
+
+source activate 2bRAD
+
+echo '#!/bin/bash' > trimse.sh
+echo 'module load miniconda3-4.6.14-gcc-8.3.0-eenl5dj' >> trimse.sh
+echo 'source activate 2bRAD' >> trimse.sh
+for file in *.tr0; do
+echo "cutadapt -q 15,15 -m 36 -o ${file/.tr0/}.trim $file > ${file/.tr0/}.trimlog.txt" >> trimse.sh;
+done
+
+sbatch -o trimse.o%j -e trimse.e%j --mem=200GB trimse.sh
+
+```
+
+```{bash, low q reads}
+cd ~/2bRAD/nwgom/ofav/trimmedReads
+
+source activate 2bRAD
+
+echo '#!/bin/bash' > trimse.sh
+echo 'module load miniconda3-4.6.14-gcc-8.3.0-eenl5dj' >> trimse.sh
+echo 'source activate 2bRAD' >> trimse.sh
+for file in *.tr0; do
+echo "cutadapt -q 15,15 -m 36 -o ${file/.tr0/}.trim $file > ${file/.tr0/}.trimlog.txt" >> trimse.sh;
+done
+
+sbatch -o trimse.o%j -e trimse.e%j --mem=200GB trimse.sh
+
+```
+
+Do we have expected number of *.trim files created?
+```{bash, trim files}
+conda deactivate
+
+ls -l ~/2bRAD/nwgom/sint/trimmedReads/*.trim | wc -l
+ls -l ~/2bRAD/nwgom/ofav/trimmedReads/*.trim | wc -l
+ls -l ~/2bRAD/nwgom/xesto/trimmedReads/*.trim | wc -l
+ls -l ~/2bRAD/nwgom/mcav/trimmedReads/*.trim | wc -l
+
+```
+
+How many reads in each sample?
+```{bash, readcounts sint}
+cd ~/2bRAD/nwgom/sint/trimmedReads
+
+echo '#!/bin/bash' >sintReads
+echo readCounts.sh -e trim -o sintFilt >>sintReads
+sbatch --mem=200GB sintReads
+
+mkdir ../filteredReads
+mv *.trim ../filteredReads
+
+zipper.py -f tr0 -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cat sintFiltReadCounts
+
+```
+
+<br>
+
+```{bash, readcounts sint}
+cd ~/2bRAD/nwgom/ofav/trimmedReads
+
+echo '#!/bin/bash' >ofavReads
+echo readCounts.sh -e trim -o ofavFilt >>ofavReads
+sbatch --mem=200GB ofavReads
+
+mkdir ../filteredReads
+mv *.trim ../filteredReads
+
+zipper.py -f tr0 -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cat ofavFiltReadCounts
+
+```
+
+<br>
+
+```{bash, readcounts sint}
+cd ~/2bRAD/nwgom/xesto/trimmedReads
+
+echo '#!/bin/bash' >xestoReads
+echo readCounts.sh -e trim -o xestoFilt >>xestoReads
+sbatch --mem=200GB xestoReads
+
+mkdir ../filteredReads
+mv *.trim ../filteredReads
+
+zipper.py -f tr0 -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cat xestoFiltReadCounts
+
+```
+
+
+```{bash, readcounts mcav}
+cd ~/2bRAD/nwgom/mcav/trimmedReads
+
+echo '#!/bin/bash' >mcavReads
+echo readCounts.sh -e trim -o mcavFilt >>mcavReads
+sbatch --mem=200GB mcavReads
+
+mkdir ../filteredReads
+mv *.trim ../filteredReads
+
+zipper.py -f tr0 -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cat mcavFiltReadCounts
+
+```
+
+## D E N O V O &nbsp; R E F E R E N C E 
+***
+
+Construct denovo reference for aligning reads                              
+
+(S. intersepta)
+
+### Remove symbiodiniaceae reads
+If you've not already, build a bt reference for the concatenated zoox genomes, otherwise skip ahead to the next chunk
+
+```{bash, symbiont genomes}
+mkdir ~/bin/symGenomes
+cd ~/bin/symGenomes
+echo "bowtie2-build symbConcatGenome.fasta symbConcatGenome" > bowtie2-build
+launcher_creator.py -j bowtie2-build -n bowtie2-build -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+module load bowtie2-2.3.5.1-gcc-8.3.0-63cvhw5
+sbatch --mem=200GB bowtie2-build.slurm
+module load samtools-1.10-gcc-8.3.0-khgksad
+srun samtools faidx symbConcatGenome.fasta
+
+```
+
+Mapping reads to concatenated Symbiodinaceae genome
+```{bash, map zoox sint}
+cd ~/2bRAD/nwgom/sint/filteredReads
+
+mkdir symbionts
+SYMGENOME=~/bin/symGenomes/symbConcatGenome
+
+2bRAD_bowtie2_launcher.py -g $SYMGENOME -f .trim -n zooxMaps --split -u un -a zoox --aldir symbionts --launcher -e reckert2017@fau.edu
+ca
+sbatch zooxMaps.slurm
+
+```
+
+
+Checking Symbiodiniaceae read mapping rates
+
+```{bash, zoox alignments sint}
+cd ~/2bRAD/nwgom/sint/filteredReads
+
+>zooxAlignmentRates
+for F in `ls *trim`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - zooxMaps.e* -A 4 | tail -1 | perl -pe 's/zooxMaps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>zooxAlignmentRates;
+done
+
+less zooxAlignmentRates
+
+```
+
+```{bash, zoox alignments xesto}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+
+>zooxAlignmentRates
+for F in `ls *trim`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - zooxMaps.e* -A 4 | tail -1 | perl -pe 's/zooxMaps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>zooxAlignmentRates;
+done
+
+less zooxAlignmentRates
+
+```
+
+Clean up directory
+```{bash, clean up zoox sint}
+cd ~/2bRAD/nwgom/sint/filteredReads
+
+zipper.py -f .trim -a -9 --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB zip.slurm
+
+mv *.sam symbionts/
+
+cd ~/2bRAD/nwgom/sint/
+mv filteredReads/symbionts .
+```
+
+
+```{bash, clean up zoox xesto}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+
+zipper.py -f .trim -a -9 --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB zip.slurm
+
+mv *.sam symbionts/
+
+cd ~/2bRAD/nwgom/xesto/
+mv filteredReads/symbionts .
+```
+
+
+### Uniquing reads 
+'stacking' individual trimmed fastq reads:
+```{bash, denovo construction sint}
+cd ~/2bRAD/nwgom/sint/filteredReads
+ls *.trim.un | perl -pe 's/^(.+)$/uniquerOne.pl $1 >$1\.uni/' > unique
+
+launcher_creator.py -j unique -n unique -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB unique.slurm
+```
+
+```{bash, denovo construction xesto}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+ls *.trim.un | perl -pe 's/^(.+)$/uniquerOne.pl $1 >$1\.uni/' > unique
+
+launcher_creator.py -j unique -n unique -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB unique.slurm
+```
+
+Checking there is a .uni for all samples
+```{bash, uni check}
+cd ~/2bRAD/nwgom/sint/filteredReads
+ls -l *.uni | wc -l
+
+cd ~/2bRAD/nwgom/xesto/filteredReads
+ls -l *.uni | wc -l
+```
+
+### Collecting common tags (major alleles).
+Merging uniqued files (set minInd to >10, or >10% of total number of samples, whichever is greater).
+```{bash, }
+cd ~/2bRAD/nwgom/sint/filteredReads
+echo 'mergeUniq.pl uni minInd=25 > all.uniq' > allunique
+
+launcher_creator.py -j allunique -n allunique -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB allunique.slurm
+
+```
+
+```{bash, }
+cd ~/2bRAD/nwgom/xesto/filteredReads
+echo 'mergeUniq.pl uni minInd=25 > all.uniq' > allunique
+
+launcher_creator.py -j allunique -n allunique -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB allunique.slurm
+
+```
+
+Discarding tags that have more than 7 observations without reverse-complement
+```{bash, discard tags}
+cd ~/2bRAD/nwgom/sint/filteredReads
+srun awk '!($3>7 && $4==0) && $2!="seq"' all.uniq >all.tab
+
+```
+
+```{bash, discard tags}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+srun awk '!($3>7 && $4==0) && $2!="seq"' all.uniq >all.tab
+
+```
+
+
+Creating fasta file out of merged and filtered tags:
+```{bash, fasta}
+cd ~/2bRAD/nwgom/sint/filteredReads
+srun awk '{print ">"$1"\n"$2}' all.tab >all.fasta
+
+```
+
+```{bash, fasta}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+srun awk '{print ">"$1"\n"$2}' all.tab >all.fasta
+
+```
+
+
+Clustering allowing for up to 3 mismatches (-c 0.91); the most abundant sequence becomes reference
+```{bash, cluster RAD tags}
+cd ~/2bRAD/nwgom/sint/filteredReads
+
+echo '#!/bin/bash' >cdhit
+echo cd-hit-est -i all.fasta -o cdh_alltags.fas -aL 1 -aS 1 -g 1 -c 0.91 -M 0 -T 0 >>cdhit
+sbatch --mem=200GB -e cdhit.e%j -o cdhit.o%j cdhit
+
+rm *.uni
+
+```
+
+```{bash, cluster RAD tags}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+
+echo '#!/bin/bash' >cdhit
+echo cd-hit-est -i all.fasta -o cdh_alltags.fas -aL 1 -aS 1 -g 1 -c 0.91 -M 0 -T 0 >>cdhit
+sbatch --mem=200GB -e cdhit.e%j -o cdhit.o%j cdhit
+
+rm *.uni
+
+```
+
+### Remove contamination
+We can remove contamination sequences from our denovo reference with ```kraken```
+
+We need a Kraken database to search against. If you don't already have one, you need to build one now. otherwise you can skip to running Kraken
+
+We can download a compiled standard database:
+```{bash, krakenDB}
+mkdir ~/bin/krakenDB
+cd ~/bin/krakenDB
+
+srun wget https://genome-idx.s3.amazonaws.com/kraken/k2_pluspf_20210127.tar.gz
+echo tar -xvf k2_pluspf_20210127.tar.gz >tar
+
+launcher_creator.py -j tar -n tar -q mediumq7 -t 24:00:00 -e reckert2017@fau.edu
+
+sbatch tar.slurm
+
+```
+
+### *Alternatively*, we can build a custom database, which can include the Symbiodiniaceae genomes
+```{bash, kraken custom}
+echo '#!/bin/bash' >krakendb.sh
+echo kraken2-build --download-taxonomy --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library archaea --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library bacteria --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library viral --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library human --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library fungi --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library protozoa --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+echo kraken2-build --download-library UniVec_Core --threads 16 --db ~/bin/krakenDB >>krakendb.sh
+
+sbatch --mem=200GB -p longq7 -e krakenDB.e%j -o krakenDB.o%j krakendb.sh
+
+```
+
+#### Format and add Symbiodiniaceae genomes to the database
+```{bash, kraken custom symbiodiniaceae}
+cd ~/bin/symGenomes
+
+# Symbiodinium microadriaticum
+sed '/>/ s/$/|kraken:taxid|2951/' Symbiodinium_microadriacticum_genome.scaffold.fasta >S_microadriacticum.fa
+
+# Breviolum minutum
+sed '/>/ s/$/|kraken:taxid|2499525/' Breviolum_minutum.v1.0.genome.fa >B_minutum.fa
+
+# Cladocopium goreaui
+sed '/>/ s/$/|kraken:taxid|2562237/' Cladocopium_goreaui_Genome.Scaffolds.fasta >C_goreaui.fa
+
+# Durusdinium trenchii
+sed '/>/ s/$/|kraken:taxid|1381693/' 102_symbd_genome_scaffold.fa >D_trenchii.fa
+
+echo '#!/bin/bash' >kdbAdd
+echo kraken2-build --add-to-library ~/bin/symGenomes/S_microadriacticum.fa --db ~/bin/krakenDB >>kdbAdd
+echo kraken2-build --add-to-library ~/bin/symGenomes/B_minutum.fa --db ~/bin/krakenDB >>kdbAdd
+echo kraken2-build --add-to-library ~/bin/symGenomes/C_goreaui.fa --db ~/bin/krakenDB >>kdbAdd
+echo kraken2-build --add-to-library ~/bin/symGenomes/D_trenchii.fa --db ~/bin/krakenDB >>kdbAdd
+
+sbatch --mem=200GB -o kdbAdd.o%j -e kdbAdd.e%j kdbAdd
+
+```
+
+#### Finally, build the database
+```{bash, kraken build}
+echo '#!/bin/bash' >kdbBuild
+echo kraken2-build --download-taxonomy --threads 16 --db /mnt/beegfs/home/reckert2017/bin/krakenDB >>kdbBuild
+echo kraken2-build --build --db ~/bin/krakenDB >>kdbBuild
+sbatch --mem=200GB -o kdbBuild.o%j -e kdbBuild.e%j kdbBuild
+
+```
+
+Remove potential contamination from reference
+```{bash, run kraken}
+cd ~/2bRAD/nwgom/sint/filteredReads
+
+echo '#!/bin/bash' >krakenDB
+echo kraken2 --db ~/bin/krakenDB cdh_alltags.fas --threads 16 --classified-out cdh_alltags.contam.fa --unclassified-out cdh_alltags.unclass.fa --report krakenDB.report --output krakenDB.out >>krakenDB
+
+sbatch --mem=200GB -o krakenDB.o%j -e krakenDB.e%j krakenDB
+```
+
+```{bash, run kraken}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+
+echo '#!/bin/bash' >krakenDB
+echo kraken2 --db ~/bin/krakenDB cdh_alltags.fas --threads 16 --classified-out cdh_alltags.contam.fa --unclassified-out cdh_alltags.unclass.fa --report krakenDB.report --output krakenDB.out >>krakenDB
+
+sbatch --mem=200GB -o krakenDB.o%j -e krakenDB.e%j krakenDB
+```
+
+
+### Construct denovo genome
+With 30 pseudo chromosomes from clean major allele tags
+```{bash, denovo genome}
+cd ~/2bRAD/nwgom/sint/filteredReads
+
+mkdir ../mappedReads
+mv cdh_alltags.unclass.fa ../mappedReads/sint_denovo.fa
+cd ../mappedReads
+
+concatFasta.pl fasta=sint_denovo.fa num=30
+
+```
+
+```{bash, denovo genome}
+cd ~/2bRAD/nwgom/xesto/filteredReads
+
+mkdir ../mappedReads
+mv cdh_alltags.unclass.fa ../mappedReads/xesto_denovo.fa
+cd ../mappedReads
+
+concatFasta.pl fasta=xesto_denovo.fa num=30
+
+```
+
+
+Format pseudo genome
+```{bash, format genome}
+cd ~/2bRAD/nwgom/sint/mappedReads
+
+GENOME_FASTA=sint_denovo_cc.fasta
+
+echo '#!/bin/bash' >genomeBuild.sh
+echo bowtie2-build $GENOME_FASTA $GENOME_FASTA >>genomeBuild.sh
+echo samtools faidx $GENOME_FASTA >>genomeBuild.sh
+
+sbatch -o genomeBuild.o%j -e genomeBuild.e%j genomeBuild.sh
+
+```
+
+```{bash, format genome}
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+GENOME_FASTA=xesto_denovo_cc.fasta
+
+echo '#!/bin/bash' >genomeBuild.sh
+echo bowtie2-build $GENOME_FASTA $GENOME_FASTA >>genomeBuild.sh
+echo samtools faidx $GENOME_FASTA >>genomeBuild.sh
+
+sbatch -o genomeBuild.o%j -e genomeBuild.e%j genomeBuild.sh
+
+```
+
+
+## M A P P I N G &nbsp; R E A D S &nbsp; T O &nbsp; R E F E R E N C E
+***
+Mapping reads to reference and formatting bam files
+
+Map reads to fake genome:
+```{bash, map reads}
+cd ~/2bRAD/nwgom/sint/mappedReads
+
+mv ../filteredReads/*.un .
+mv ../filteredReads/symbionts .
+
+GENOME_FASTA=sint_denovo_cc.fasta
+
+# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+2bRAD_bowtie2_launcher.py -f un -g $GENOME_FASTA --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB maps.slurm
+
+```
+
+```{bash, map reads}
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+mv ../filteredReads/*.un .
+mv ../filteredReads/symbionts .
+
+GENOME_FASTA=~/bin/xtGenome/xtGenome
+
+# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+2bRAD_bowtie2_launcher.py -f trim -g $GENOME_FASTA --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB maps.slurm
+
+```
+
+Do we have the right number of SAM files?
+```{bash, sam counts}
+cd ~/2bRAD/nwgom/sint/mappedReads
+ls *.sam | wc -l 
+
+cd ~/2bRAD/nwgom/xesto/mappedReads
+ls *.sam | wc -l 
+
+```
+
+Checking alignment rates
+```{bash, align rates}
+cd ~/2bRAD/nwgom/sint/mappedReads
+
+>alignmentRates
+for F in `ls *trim.un`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+less alignmentRates
+
+```
+
+```{bash, align rates ofav}
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+>alignmentRates
+for F in `ls *trim.un`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+less alignmentRates
+
+```
+
+### Convert SAM files to BAM files
+BAM files will be used for genotyping, population structure, etc.
+```{bash, convert sam}
+cd ~/2bRAD/nwgom/sint/mappedReads
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB s2b.slurm
+
+```
+
+```{bash, convert sam}
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB s2b.slurm
+
+```
+
+
+Do we have enough BAM files?
+```{bash, bam count}
+cd ~/2bRAD/nwgom/sint/mappedReads
+ls *bam | wc -l  # should be the same number as number of trim files
+
+cd ~/2bRAD/nwgom/xesto/mappedReads
+ls *bam | wc -l 
+
+```
+
+Clean up directory
+```{bash, clean bams}
+cd ~/2bRAD/nwgom/sint/mappedReads
+
+zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+rm *.un
+
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+rm *.un
+
+```
+
+
+## M A P P I N G &nbsp; R E A D S &nbsp; T O &nbsp; G E N O M E
+***
+
+O. faveolata and M. cavernosa
+
+If you haven't yet, format genomes for bowtie2:\
+```{bash, format genome}
+cd ~/bin/mcavGenome
+
+echo '#!/bin/bash' >genomeBuild.sh
+echo bowtie2-build mcavGenome.fa mcavGenome.fa >>genomeBuild.sh
+echo samtools faidx mcavGenome.fa >>genomeBuild.sh
+
+sbatch -o genomeBuild.o%j -e genomeBuild.e%j --mem=200GB genomeBuild.sh
+
+cd ~/bin/ofavGenome
+
+echo '#!/bin/bash' >genomeBuild.sh
+echo bowtie2-build ofavGenome.fa ofavGenome.fa >>genomeBuild.sh
+echo samtools faidx ofavGenome.fa >>genomeBuild.sh
+
+sbatch -o genomeBuild.o%j -e genomeBuild.e%j --mem=200GB genomeBuild.sh
+
+cd ~/bin/xestoGenome
+
+echo '#!/bin/bash' >genomeBuild.sh
+echo bowtie2-build odXesMuta1.1_alternate_haplotype.fna odXesMuta1.1_alternate_haplotype.fna >>genomeBuild.sh
+echo samtools faidx odXesMuta1.1_alternate_haplotype.fna >>genomeBuild.sh
+
+sbatch -o genomeBuild.o%j -e genomeBuild.e%j --mem=200GB genomeBuild.sh
+
+```
+
+Mapping reads to concatenated Symbiodinaceae genome
+```{bash, map zoox mcav}
+cd ~/2bRAD/nwgom/mcav/filteredReads
+
+mkdir symbionts
+SYMGENOME=~/bin/symGenomes/symbConcatGenome
+
+2bRAD_bowtie2_launcher.py -g $SYMGENOME -f .trim -n zooxMaps --split -u un -a zoox --aldir symbionts --launcher -e reckert2017@fau.edu
+
+sbatch zooxMaps.slurm
+
+```
+
+Mapping reads to concatenated Symbiodinaceae genome
+```{bash, map zoox ofav}
+cd ~/2bRAD/nwgom/ofav/filteredReads
+
+mkdir symbionts
+SYMGENOME=~/bin/symGenomes/symbConcatGenome
+
+2bRAD_bowtie2_launcher.py -g $SYMGENOME -f .trim -n zooxMaps --split -u un -a zoox --aldir symbionts --launcher -e reckert2017@fau.edu
+
+sbatch zooxMaps.slurm
+
+```
+
+
+```{bash, }
+cd ~/2bRAD/nwgom/mcav/filteredReads
+
+>zooxAlignmentRates
+for F in `ls *trim`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - zooxMaps.e* -A 4 | tail -1 | perl -pe 's/zooxMaps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>zooxAlignmentRates;
+done
+
+less zooxAlignmentRates
+```
+
+```{bash, }
+cd ~/2bRAD/nwgom/ofav/filteredReads
+
+>zooxAlignmentRates
+for F in `ls *trim`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - zooxMaps.e* -A 4 | tail -1 | perl -pe 's/zooxMaps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>zooxAlignmentRates;
+done
+
+less zooxAlignmentRates
+```
+
+
+Mapping reads to reference and formatting bam files
+```{bash, map reads}
+cd ~/2bRAD/nwgom/ofav
+mkdir mappedReads
+cd ~/2bRAD/nwgom/ofav/mappedReads
+
+mv ../filteredReads/*.un .
+mv ../filteredReads/symbionts .
+
+GENOME_FASTA=~/bin/ofavGenome/ofavGenome.fa
+
+# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+2bRAD_bowtie2_launcher.py -f un -g $GENOME_FASTA --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB maps.slurm
+
+```
+
+```{bash, map reads}
+cd ~/2bRAD/nwgom/mcav
+mkdir mappedReads
+cd ~/2bRAD/nwgom/mcav/mappedReads
+
+mv ../filteredReads/*.un .
+mv ../filteredReads/symbionts .
+
+GENOME_FASTA=~/bin/mcavGenome/mcavGenome.fa
+
+# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+2bRAD_bowtie2_launcher.py -f un -g $GENOME_FASTA --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB maps.slurm
+
+```
+
+```{bash, map xesto reads}
+cd ~/2bRAD/nwgom/xesto
+mkdir mappedReads
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+mv ../filteredReads/*.trim .
+
+GENOME_FASTA=~/bin/xestoGenome/odXesMuta1.1_alternate_haplotype.fna
+
+# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+2bRAD_bowtie2_launcher.py -f trim -g $GENOME_FASTA --launcher -e reckert2017@fau.edu
+sbatch --mem=200GB maps.slurm
+
+```
+
+
+Do we have the right number of SAM files?
+```{bash, sam counts}
+cd ~/2bRAD/nwgom/ofav/mappedReads
+ls *.sam | wc -l 
+
+cd ~/2bRAD/nwgom/mcav/mappedReads
+ls *.sam | wc -l 
+
+cd ~/2bRAD/nwgom/xesto/mappedReads
+ls *.sam | wc -l 
+
+```
+
+
+Checking alignment rates
+
+```{bash, align rates}
+cd ~/2bRAD/nwgom/ofav/mappedReads
+
+>alignmentRates
+for F in `ls *trim.un`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+less alignmentRates
+
+```
+
+
+```{bash, align rates ofav}
+cd ~/2bRAD/nwgom/mcav/mappedReads
+
+>alignmentRates
+for F in `ls *trim.un`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+less alignmentRates
+
+```
+
+
+```{bash, align rates}
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+>alignmentRates
+for F in `ls *trim`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+less alignmentRates
+
+```
+
+### Convert SAM files to BAM files
+BAM files will be used for genotyping, population structure, etc.
+```{bash, convert sam}
+cd ~/2bRAD/nwgom/ofav/mappedReads
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB s2b.slurm
+
+```
+
+```{bash, convert sam}
+cd ~/2bRAD/nwgom/mcav/mappedReads
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB s2b.slurm
+
+```
+
+```{bash, convert sam}
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
+sbatch --mem=200GB s2b.slurm
+
+```
+
+
+Do we have enough BAM files?
+```{bash, bam count}
+cd ~/2bRAD/nwgom/ofav/mappedReads
+ls *bam | wc -l  # should be the same number as number of trim files
+
+cd ~/2bRAD/nwgom/mcav/mappedReads
+ls *bam | wc -l 
+
+cd ~/2bRAD/nwgom/xesto/mappedReads
+ls *bam | wc -l 
+
+```
+
+Clean up directory
+```{bash, clean bams}
+cd ~/2bRAD/nwgom/ofav/mappedReads
+
+zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+rm *.un
+
+cd ~/2bRAD/nwgom/mcav/mappedReads
+
+zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+rm *.un
+
+cd ~/2bRAD/nwgom/xesto/mappedReads
+
+zipper.py -a -9 -f sam --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+rm *.trim
+
+```
+
+
+##  G E N O T Y P I N G
+***
+"FUZZY genotyping" with ANGSD - without calling actual genotypes but working with genotype likelihoods at each SNP. Optimal for low-coverage data (<10x).
+```{bash, angsd dir}
+cd ~/2bRAD/nwgom/sint/
+mkdir ANGSD
+cd ANGSD
+mv ../mappedReads/*.bam* .
+
+ls *bam >bamsClones
+
+cd ~/2bRAD/nwgom/xesto/
+mkdir ANGSD
+cd ANGSD
+mv ../mappedReads/*.bam* .
+
+ls *bam >bamsClones
+
+cd ~/2bRAD/nwgom/ofav/
+mkdir ANGSD
+cd ANGSD
+mv ../mappedReads/*.bam* .
+
+ls *bam >bamsClones
+
+cd ~/2bRAD/nwgom/mcav/
+mkdir ANGSD
+cd ANGSD
+mv ../mappedReads/*.bam* .
+
+ls *bam >bamsClones
+```
+
+### Assessing base qualities and coverage depth
+```ANGSD``` settings:
+```-minMapQ 20```: only highly unique mappings (prob of erroneous mapping =< 1%)
+```-baq 1```: realign around indels (not terribly relevant for 2bRAD reads mapped with --local option)
+```-maxDepth```: highest total depth (sum over all samples) to assess; set to 10x number of samples
+```-minInd```: the minimal number of individuals the site must be genotyped in. Reset to 50% of total N at this stage.
+```{bash, ANGSD}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 2190 -minInd 110"
+export TODO="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
+
+echo '#!/bin/bash' >sintDD.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out dd >>sintDD.sh
+
+sbatch --mem=200GB -o sintDD.o%j -e sintDD.e%j --mail-user=reckert2017@fau.edu --mail-type=ALL sintDD.sh
+
+```
+
+```{bash, ANGSD}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 1360 -minInd 68"
+export TODO="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
+
+echo '#!/bin/bash' >ofavDD.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out dd >>ofavDD.sh
+
+sbatch --mem=200GB -o ofavDD.o%j -e ofavDD.e%j --mail-user=reckert2017@fau.edu --mail-type=ALL ofavDD.sh
+
+```
+
+```{bash, ANGSD}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 2150 -minInd 108"
+export TODO="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
+
+echo '#!/bin/bash' >xestoDD.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out dd >>xestoDD.sh
+
+sbatch --mem=200GB -o xestoDD.o%j -e xestoDD.e%j --mail-user=reckert2017@fau.edu --mail-type=ALL xestoDD.sh
+
+```
+
+
+```{bash, ANGSD}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+export FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 1810 -minInd 91"
+export TODO="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
+
+echo '#!/bin/bash' >mcavDD.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out dd >>mcavDD.sh
+
+sbatch --mem=200GB -o mcavDD.o%j -e mcavDD.e%j --mail-user=reckert2017@fau.edu --mail-type=ALL mcavDD.sh
+
+```
+
+
+Summarizing results (using Misha Matz modified script by Matteo Fumagalli)
+```{bash, angsd results}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+echo '#!/bin/bash' >RQC.sh
+echo Rscript ~/bin/plotQC.R prefix=dd >>RQC.sh
+echo gzip -9 dd.counts >>RQC.sh
+sbatch -e RQC.e%j -o RQC.o%j --mem=200GB RQC.sh
+
+
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+echo '#!/bin/bash' >RQC.sh
+echo Rscript ~/bin/plotQC.R prefix=dd >>RQC.sh
+echo gzip -9 dd.counts >>RQC.sh
+sbatch -e RQC.e%j -o RQC.o%j --mem=200GB RQC.sh
+
+
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+echo '#!/bin/bash' >RQC.sh
+echo Rscript ~/bin/plotQC.R prefix=dd >>RQC.sh
+echo gzip -9 dd.counts >>RQC.sh
+sbatch -e RQC.e%j -o RQC.o%j --mem=200GB RQC.sh
+
+
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+echo '#!/bin/bash' >RQC.sh
+echo Rscript ~/bin/plotQC.R prefix=dd >>RQC.sh
+echo gzip -9 dd.counts >>RQC.sh
+sbatch -e RQC.e%j -o RQC.o%j --mem=200GB RQC.sh
+
+```
+
+Proportion of sites covered at >5X:
+```{bash, }
+cd ~/2bRAD/nwgom/sint/ANGSD
+cat quality.txt
+
+cd ~/2bRAD/nwgom/xesto/ANGSD
+cat quality.txt
+
+cd ~/2bRAD/nwgom/ofav/ANGSD
+cat quality.txt
+
+cd ~/2bRAD/nwgom/mcav/ANGSD
+cat quality.txt
+
+```
+```scp``` dd.pdf to laptop to look at distribution of base quality scores, fraction of sites in each sample passing coverage thresholds and fraction of sites passing genotyping rates cutoffs. Use these to guide choices of ```-minQ```,  ```-minIndDepth``` and ```-minInd``` filters in subsequent ```ANGSD``` runs
+
+![](../data/snps/clones/dd.png)
+
+### Identifying clones and technical replicates
+```{bash, ANGSD clones sint}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 110 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > sintClones.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out sintClones >>sintClones.sh
+
+sbatch --mem=200GB -o sintClones.o%j -e sintClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu sintClones.sh
+
+```
+
+```{bash, ANGSD clones xesto}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 161 -snp_pval 1e-6 -minMaf 0.05 -setMinDepthInd 1"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > xestoClones.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out xestoClones >>xestoClones.sh
+
+sbatch --mem=200GB -o xestoClones.o%j -e xestoClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu xestoClones.sh
+
+```
+
+```{bash, ANGSD clones ofav}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 102 -snp_pval 1e-6 -minMaf 0.05 -setMinDepthInd 3"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > ofavClones.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out ofavClones >>ofavClones.sh
+
+sbatch --mem=200GB -o ofavClones.o%j -e ofavClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu ofavClones.sh
+
+```
+
+```{bash, ANGSD clones mcav}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 136 -snp_pval 1e-6 -minMaf 0.05 -setMinDepthInd 3"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > mcavClones.sh
+echo angsd -b bamsClones -GL 1 $FILTERS $TODO -P 1 -out mcavClones >>mcavClones.sh
+
+sbatch --mem=200GB -o mcavClones.o%j -e mcavClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu mcavClones.sh
+
+```
+
+
+Use ibs matrix to identify clones with hierachial clustering in ```R```. ```scp``` to local machine and run chunk below in ```R```
+```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+if (!require("pacman")) install.packages("pacman")
+setwd("~/GitHub/nwgom_popGen/data/")
+
+pacman::p_load("dendextend", "ggdendro", "tidyverse")
+
+cloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!Sample %in% c("MGM010")) # list of bam files
+
+cloneMa = as.matrix(read.table("../data/mcavClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
+
+dimnames(cloneMa) = list(cloneBams[,1],cloneBams[,1])
+clonesHc = hclust(as.dist(cloneMa),"ave")
+
+clonePops = cloneBams$bank
+cloneDepth = cloneBams$depthZone
+
+cloneDend = cloneMa %>% as.dist() %>% hclust(.,"ave") %>% as.dendrogram()
+cloneDData = cloneDend %>% dendro_data()
+
+# Making the branches hang shorter so we can easily see clonal groups
+cloneDData$segments$yend2 = cloneDData$segments$yend
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend2[i] == 0) {
+    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.01)}}
+
+cloneDendPoints = cloneDData$labels
+cloneDendPoints$pop = clonePops[order.dendrogram(cloneDend)]
+cloneDendPoints$depth=cloneDepth[order.dendrogram(cloneDend)]
+rownames(cloneDendPoints) = cloneDendPoints$label
+
+# Making points at the leaves to place symbols for populations
+point = as.vector(NA)
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend[i] == 0) {
+    point[i] = cloneDData$segments$y[i] - 0.01
+  } else {
+    point[i] = NA}}
+
+cloneDendPoints$y = point[!is.na(point)]
+
+techReps = c("MGM002.1", "MGM002.2", "MGM002.3", "MGM008.1", "MGM008.2", "MGM008.3", "MGM013.1", "MGM013.2", "MGM013.3", "MGM024.1", "MGM024.2", "MGM038.1", "MGM038.2", "MGM038.3", "MGM072.1", "MGM072.2", "MGM072.3")
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth)
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth,levels(cloneDendPoints$depth)[c(2,1)])
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop)
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop,levels(cloneDendPoints$pop)[c(5, 2, 1, 4, 3)])
+
+cloneDendA = ggplot() +
+  geom_segment(data = segment(cloneDData), aes(x = x, y = y, xend = xend, yend = yend2), size = 0.5) +
+  geom_point(data = cloneDendPoints, aes(x = x, y = y, fill = pop, shape = depth), size = 4, stroke = 0.25) +
+  # scale_fill_manual(values = flPal, name= "Population")+
+  scale_shape_manual(values = c(24, 25), name = "Depth Zone")+
+  geom_hline(yintercept = 0.1575, color = "red", lty = 5, size = 0.75) + # creating a dashed line to indicate a clonal distance threshold
+  geom_text(data = subset(cloneDendPoints, subset = label %in% techReps), aes(x = x, y = (y - .015), label = label), angle = 90) + # spacing technical replicates further from leaf
+  geom_text(data = subset(cloneDendPoints, subset = !label %in% techReps), aes(x = x, y = (y - .010), label = label), angle = 90) +
+  labs(y = "Genetic distance (1 - IBS)") +
+  guides(fill = guide_legend(override.aes = list(shape = 22)))+
+  coord_cartesian(xlim = c(0,182), ylim = c(0.075, 0.3),expand = FALSE) +
+  theme_classic()
+
+cloneDend = cloneDendA + theme(
+  axis.title.x = element_blank(),
+  axis.text.x = element_blank(),
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.y = element_text(size = 12, color = "black", angle = 90),
+  axis.text.y = element_text(size = 10, color = "black"),
+  axis.line.y = element_line(),
+  axis.ticks.y = element_line(),
+  panel.grid = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  plot.background = element_blank(),
+  legend.key = element_blank(),
+  legend.title = element_text(size = 12),
+  legend.text = element_text(size = 10),
+  legend.position = "bottom")
+
+cloneDend
+
+ggsave("../figures/mcavCloneDend.png", plot = cloneDend, height = 9, width = 32, units = "in", dpi = 300)
+
+```
+![](../figures/cloneDend.png)
+
+```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+if (!require("pacman")) install.packages("pacman")
+setwd("~/GitHub/nwgom_popGen/data/")
+
+pacman::p_load("dendextend", "ggdendro", "tidyverse")
+
+cloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!Sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121"))
+
+cloneMa = as.matrix(read.table("../data/ofavClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
+
+dimnames(cloneMa) = list(cloneBams[,1],cloneBams[,1])
+clonesHc = hclust(as.dist(cloneMa),"ave")
+
+clonePops = cloneBams$bank
+cloneDepth = cloneBams$depthZone
+
+cloneDend = cloneMa %>% as.dist() %>% hclust(.,"ave") %>% as.dendrogram()
+cloneDData = cloneDend %>% dendro_data()
+
+# Making the branches hang shorter so we can easily see clonal groups
+cloneDData$segments$yend2 = cloneDData$segments$yend
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend2[i] == 0) {
+    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.01)}}
+
+cloneDendPoints = cloneDData$labels
+cloneDendPoints$pop = clonePops[order.dendrogram(cloneDend)]
+cloneDendPoints$depth=cloneDepth[order.dendrogram(cloneDend)]
+rownames(cloneDendPoints) = cloneDendPoints$label
+
+# Making points at the leaves to place symbols for populations
+point = as.vector(NA)
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend[i] == 0) {
+    point[i] = cloneDData$segments$y[i] - 0.01
+  } else {
+    point[i] = NA}}
+
+cloneDendPoints$y = point[!is.na(point)]
+
+techReps = c("OGM024.1", "OGM024.2", "OGM024.3", "OGM066.1", "OGM066.2", "OGM066.3", "OGM108.1", "OGM108.2", "OGM108.3")
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth)
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth,levels(cloneDendPoints$depth)[c(2,1)])
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop)
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop,levels(cloneDendPoints$pop)[c(5, 2, 1, 4, 3)])
+
+cloneDendA = ggplot() +
+  geom_segment(data = segment(cloneDData), aes(x = x, y = y, xend = xend, yend = yend2), size = 0.5) +
+  geom_point(data = cloneDendPoints, aes(x = x, y = y, fill = pop, shape = depth), size = 4, stroke = 0.25) +
+  # scale_fill_manual(values = flPal, name= "Population")+
+  scale_shape_manual(values = c(24, 25), name = "Depth Zone")+
+  geom_hline(yintercept = 0.1425, color = "red", lty = 5, size = 0.75) + # creating a dashed line to indicate a clonal distance threshold
+  geom_text(data = subset(cloneDendPoints, subset = label %in% techReps), aes(x = x, y = (y - .015), label = label), angle = 90) + # spacing technical replicates further from leaf
+  geom_text(data = subset(cloneDendPoints, subset = !label %in% techReps), aes(x = x, y = (y - .010), label = label), angle = 90) +
+  labs(y = "Genetic distance (1 - IBS)") +
+  guides(fill = guide_legend(override.aes = list(shape = 22)))+
+  coord_cartesian(xlim = c(0,137), ylim = c(0.075, 0.3), expand = FALSE) + 
+  theme_classic()
+
+cloneDend = cloneDendA + theme(
+  axis.title.x = element_blank(),
+  axis.text.x = element_blank(),
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.y = element_text(size = 12, color = "black", angle = 90),
+  axis.text.y = element_text(size = 10, color = "black"),
+  axis.line.y = element_line(),
+  axis.ticks.y = element_line(),
+  panel.grid = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  plot.background = element_blank(),
+  legend.key = element_blank(),
+  legend.title = element_text(size = 12),
+  legend.text = element_text(size = 10),
+  legend.position = "bottom")
+
+cloneDend
+
+ggsave("../figures/ofavCloneDend.png", plot = cloneDend, height = 9, width = 30, units = "in", dpi = 300)
+
+```
+
+
+```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+if (!require("pacman")) install.packages("pacman")
+setwd("~/GitHub/nwgom_popGen/data/")
+
+pacman::p_load("dendextend", "ggdendro", "tidyverse")
+
+cloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!Sample %in% c("SGM013", "SGM169", "SGM177"))
+
+cloneMa = as.matrix(read.table("../data/sintClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
+
+dimnames(cloneMa) = list(cloneBams[,1],cloneBams[,1])
+clonesHc = hclust(as.dist(cloneMa),"ave")
+
+clonePops = cloneBams$bank
+cloneDepth = cloneBams$depthZone
+
+cloneDend = cloneMa %>% as.dist() %>% hclust(.,"ave") %>% as.dendrogram()
+cloneDData = cloneDend %>% dendro_data()
+
+# Making the branches hang shorter so we can easily see clonal groups
+cloneDData$segments$yend2 = cloneDData$segments$yend
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend2[i] == 0) {
+    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.01)}}
+
+cloneDendPoints = cloneDData$labels
+cloneDendPoints$pop = clonePops[order.dendrogram(cloneDend)]
+cloneDendPoints$depth=cloneDepth[order.dendrogram(cloneDend)]
+rownames(cloneDendPoints) = cloneDendPoints$label
+
+# Making points at the leaves to place symbols for populations
+point = as.vector(NA)
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend[i] == 0) {
+    point[i] = cloneDData$segments$y[i] - 0.01
+  } else {
+    point[i] = NA}}
+
+cloneDendPoints$y = point[!is.na(point)]
+
+techReps = c("SGM027.1", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.2", "SGM046.3", "SGM152.1", "SGM152.2", "SGM152.3", "SGM186.1", "SGM186.2", "SGM186.3", "SGM197.1", "SGM197.2", "SGM197.3", "SGM206.1", "SGM206.2", "SGM206.3")
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth)
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth,levels(cloneDendPoints$depth)[c(2,1)])
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop)
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop,levels(cloneDendPoints$pop)[c(5, 2, 1, 4, 3)])
+
+cloneDendA = ggplot() +
+  geom_segment(data = segment(cloneDData), aes(x = x, y = y, xend = xend, yend = yend2), size = 0.5) +
+  geom_point(data = cloneDendPoints, aes(x = x, y = y, fill = pop, shape = depth), size = 4, stroke = 0.25) +
+  # scale_fill_manual(values = flPal, name= "Population")+
+  scale_shape_manual(values = c(24, 25), name = "Depth Zone")+
+  geom_hline(yintercept = 0.154, color = "red", lty = 5, size = 0.75) + # creating a dashed line to indicate a clonal distance threshold
+  geom_text(data = subset(cloneDendPoints, subset = label %in% techReps), aes(x = x, y = (y - .015), label = label), angle = 90) + # spacing technical replicates further from leaf
+  geom_text(data = subset(cloneDendPoints, subset = !label %in% techReps), aes(x = x, y = (y - .010), label = label), angle = 90) +
+  labs(y = "Genetic distance (1 - IBS)") +
+  guides(fill = guide_legend(override.aes = list(shape = 22)))+
+  coord_cartesian(xlim = c(0, 220), ylim = c(0.075, 0.3), expand = FALSE) +
+  theme_classic()
+
+cloneDend = cloneDendA + theme(
+  axis.title.x = element_blank(),
+  axis.text.x = element_blank(),
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.y = element_text(size = 12, color = "black", angle = 90),
+  axis.text.y = element_text(size = 10, color = "black"),
+  axis.line.y = element_line(),
+  axis.ticks.y = element_line(),
+  panel.grid = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  plot.background = element_blank(),
+  legend.key = element_blank(),
+  legend.title = element_text(size = 12),
+  legend.text = element_text(size = 10),
+  legend.position = "bottom")
+
+cloneDend
+
+ggsave("../figures/sintCloneDend.png", plot = cloneDend, height = 9, width = 30, units = "in", dpi = 300)
+
+```
+
+
+```{r, Dendrogram With Clones, fig.dim = c(13, 4.75)}
+if (!require("pacman")) install.packages("pacman")
+setwd("~/GitHub/nwgom_popGen/data/")
+
+pacman::p_load("dendextend", "ggdendro", "tidyverse")
+
+cloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!Sample %in% c("XGM013", "XGM067", "XGM129"))
+
+cloneMa = as.matrix(read.table("../data/xesto/xestoClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
+
+dimnames(cloneMa) = list(cloneBams[,1],cloneBams[,1])
+clonesHc = hclust(as.dist(cloneMa),"ave")
+
+clonePops = cloneBams$bank
+cloneDepth = cloneBams$depthZone
+
+cloneDend = cloneMa %>% as.dist() %>% hclust(.,"ave") %>% as.dendrogram()
+cloneDData = cloneDend %>% dendro_data()
+
+# Making the branches hang shorter so we can easily see clonal groups
+cloneDData$segments$yend2 = cloneDData$segments$yend
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend2[i] == 0) {
+    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.01)}}
+
+cloneDendPoints = cloneDData$labels
+cloneDendPoints$pop = clonePops[order.dendrogram(cloneDend)]
+cloneDendPoints$depth=cloneDepth[order.dendrogram(cloneDend)]
+rownames(cloneDendPoints) = cloneDendPoints$label
+
+# Making points at the leaves to place symbols for populations
+point = as.vector(NA)
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend[i] == 0) {
+    point[i] = cloneDData$segments$y[i] - 0.01
+  } else {
+    point[i] = NA}}
+
+cloneDendPoints$y = point[!is.na(point)]
+
+techReps = c("XGM034.1", "XGM034.2", "XGM034.3", "XGM072.1", "XGM072.2", "XGM072.3", "XGM158.1", "XGM158.2", "XGM158.3", "XGM179.1", "XGM179.2", "XGM179.3", "XGM193.1", "XGM193.2", "XGM193.3", "XGM203.1", "XGM203.2", "XGM203.3")
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth)
+
+cloneDendPoints$depth = factor(cloneDendPoints$depth,levels(cloneDendPoints$depth)[c(2,1)])
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop)
+
+cloneDendPoints$pop = factor(cloneDendPoints$pop,levels(cloneDendPoints$pop)[c(5, 2, 1, 4, 3)])
+
+cloneDendA = ggplot() +
+  geom_segment(data = segment(cloneDData), aes(x = x, y = y, xend = xend, yend = yend2), size = 0.5) +
+  geom_point(data = cloneDendPoints, aes(x = x, y = y, fill = pop, shape = depth), size = 4, stroke = 0.25) +
+  # scale_fill_manual(values = flPal, name= "Population")+
+  scale_shape_manual(values = c(24, 25), name = "Depth Zone")+
+  geom_hline(yintercept = 0.174, color = "red", lty = 5, linewidth = 0.75) + # creating a dashed line to indicate a clonal distance threshold
+  geom_text(data = subset(cloneDendPoints, subset = label %in% techReps), aes(x = x, y = (y - .015), label = label), angle = 90) + # spacing technical replicates further from leaf
+  geom_text(data = subset(cloneDendPoints, subset = !label %in% techReps), aes(x = x, y = (y - .010), label = label), angle = 90) +
+  labs(y = "Genetic distance (1 - IBS)") +
+  guides(fill = guide_legend(override.aes = list(shape = 22)))+
+  coord_cartesian(xlim = c(0, 217), ylim = c(0.075, 0.3), expand = FALSE) +
+  theme_classic()
+
+cloneDend = cloneDendA + theme(
+  axis.title.x = element_blank(),
+  axis.text.x = element_blank(),
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.y = element_text(size = 12, color = "black", angle = 90),
+  axis.text.y = element_text(size = 10, color = "black"),
+  axis.line.y = element_line(),
+  axis.ticks.y = element_line(),
+  panel.grid = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  plot.background = element_blank(),
+  legend.key = element_blank(),
+  legend.title = element_text(size = 12),
+  legend.text = element_text(size = 10),
+  legend.position = "bottom")
+
+# cloneDend
+
+ggsave("../figures/xestoCloneDend.png", plot = cloneDend, height = 8, width = 35, units = "in", dpi = 300)
+
+```
+
+### Removing clones and re-running ANGSD
+```{bash, ANGSD no clones ofav}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+mkdir clones
+mv sintClones* clones
+
+ls *.bam > bamsNoClones
+
+# removing replicates/clones with the lowest 5x coverage
+cat bamsClones | grep -v 'SGM007.trim.un.bt2.bam\|SGM010.trim.un.bt2.bam\|SGM027.2.trim.un.bt2.bam\|SGM027.3.trim.un.bt2.bam\|SGM046.1.trim.un.bt2.bam\|SGM046.3.trim.un.bt2.bam\|SGM063.trim.un.bt2.bam\|SGM152.2.trim.un.bt2.bam\|SGM152.3.trim.un.bt2.bam\|SGM179.trim.un.bt2.bam\|SGM186.1.trim.un.bt2.bam\|SGM186.3.trim.un.bt2.bam\|SGM197.2.trim.un.bt2.bam\|SGM197.3.trim.un.bt2.bam\|SGM206.2.trim.un.bt2.bam\|SGM206.3.trim.un.bt2.bam' >bamsNoClones
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 153 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > sintNoClones.sh
+echo srun angsd -b bamsNoClones -GL 1 $FILTERS $TODO -P 1 -out sintNoClones >> sintNoClones.sh
+
+sbatch --mem=200GB -o sintNoClones.o%j -e sintNoClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu sintNoClones.sh
+
+```
+
+
+```{bash, ANGSD no clones mcav}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+mkdir clones
+mv mcavClones* clones
+
+ls *.bam > bamsNoClones
+
+# removing replicates/clones with the lowest 5x coverage
+cat bamsClones | grep -v 'MGM072.1.trim.un.bt2.bam\|MGM072.3.trim.un.bt2.bam\|MGM013.2.trim.un.bt2.bam\|MGM013.3.trim.un.bt2.bam\|MGM008.1.trim.un.bt2.bam\|MGM008.2.trim.un.bt2.bam\|MGM024.1.trim.un.bt2.bam\|MGM004.trim.un.bt2.bam\|MGM002.2.trim.un.bt2.bam\|MGM002.3.trim.un.bt2.bam\|MGM038.2.trim.un.bt2.bam\|MGM038.3.trim.un.bt2.bam' >bamsNoClones
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 127 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > mcavNoClones.sh
+echo srun angsd -b bamsNoClones -GL 1 $FILTERS $TODO -P 1 -out mcavNoClones >> mcavNoClones.sh
+
+sbatch --mem=200GB -o mcavNoClones.o%j -e mcavNoClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu mcavNoClones.sh
+
+```
+
+
+```{bash, ANGSD no clones ofav}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+mkdir clones
+mv ofavClones* clones
+
+ls *.bam > bamsNoClones
+
+# removing replicates/clones with the lowest 5x coverage
+cat bamsClones | grep -v 'OGM126.trim.un.bt2.bam\|OGM108.2.trim.un.bt2.bam\|OGM108.3.trim.un.bt2.bam\|OGM024.3.trim.un.bt2.bam\|OGM024.1.trim.un.bt2.bam\|OGM017.trim.un.bt2.bam\|OGM066.2.trim.un.bt2.bam\|OGM066.1.trim.un.bt2.bam\|OGM071.trim.un.bt2.bam\|OGM072.trim.un.bt2.bam\|OGM016.trim.un.bt2.bam\|OGM009.trim.un.bt2.bam\|OGM077.trim.un.bt2.bam\|OGM086.trim.un.bt2.bam\|OGM013.trim.un.bt2.bam\|OGM115.trim.un.bt2.bam\|OGM118.trim.un.bt2.bam\|OGM012.trim.un.bt2.bam\|OGM124.trim.un.bt2.bam\|OGM005.trim.un.bt2.bam' >bamsNoClones
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 87 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > ofavNoClones.sh
+echo srun angsd -b bamsNoClones -GL 1 $FILTERS $TODO -P 1 -out ofavNoClones >> ofavNoClones.sh
+
+sbatch --mem=200GB -o ofavNoClones.o%j -e ofavNoClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu ofavNoClones.sh
+
+```
+
+```{bash, ANGSD no clones ofav}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+mkdir clones
+mv xestoClones* clones
+
+# removing replicates/clones with the lowest 5x coverage
+cat bamsClones | grep -v 'XGM193.2.trim.bt2.bam\|XGM193.3.trim.bt2.bam\|XGM203.trim.bt2.bam\|XGM203.3.trim.bt2.bam\|XGM158.trim.bt2.bam\|XGM158.2.trim.bt2.bam\|XGM149.trim.bt2.bam\|XGM118.trim.bt2.bam\|XGM132.trim.bt2.bam\|XGM117.trim.bt2.bam\|XGM099.trim.bt2.bam\|XGM110.trim.bt2.bam\|XGM179.2.trim.bt2.bam\|XGM179.3.trim.bt2.bam\|XGM072.trim.bt2.bam\|XGM072.3.trim.bt2.bam\|XGM034.trim.bt2.bam\|XGM034.3.trim.bt2.bam' >bamsNoClones
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 147 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 1"
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo '#!/bin/bash' > xestoNoClones.sh
+echo srun angsd -b bamsNoClones -GL 1 $FILTERS $TODO -P 1 -out xestoNoClones >> xestoNoClones.sh
+
+sbatch --mem=200GB -o xestoNoClones.o%j -e xestoNoClones.e%j -p shortq7 --mail-type=ALL --mail-user=reckert2017@fau.edu xestoNoClones.sh
+
+```
+
+How many SNPs?
+```{bash, SNPs?}
+cd ~/2bRAD/nwgom/sint/ANGSD
+grep "filtering:" sintNoClones.e*
+
+```
+17,652 SNPs
+
+```{bash, SNPs?}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+grep "filtering:" xestoNoClones.e*
+
+```
+10,337    SNPs
+
+```{bash, SNPs?}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+grep "filtering:" ofavNoClones.e*
+
+```
+10,345 SNPs
+
+```{bash, SNPs?}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+grep "filtering:" mcavNoClones.e*
+
+```
+5,989 SNPs
+
+## P O P U L A T I O N &nbsp; S T R U C T U R E
+***
+
+### pcangsd
+Using ```pcangsd``` to discern population structure
+
+pcangsd
+```{bash, pcangsd install}
+cd bin
+
+git clone https://github.com/Rosemeis/pcangsd.git
+cd pcangsd
+
+conda activate 2bRAD
+pip install --user -r requirements.txt
+
+python setup.py build_ext --inplace
+
+pip3 install -e .
+
+```
+
+
+```{bash, pcangsd ofav}
+cd ~/2bRAD/nwgom/ofav
+mkdir pcangsd
+cd pcangsd
+
+cp ../ANGSD/ofavNoClones.beagle.gz .
+
+
+source activate 2bRAD
+
+echo 'pcangsd -b ofavNoClones.beagle.gz -o ofavPcangsd --admix --inbreedSamples --pcadapt --selection' >> pcangsd
+
+launcher_creator.py -j pcangsd -n pcangsd -q shortq7 -t 06:00:00 -e $EMAIL -w 1 -N 1
+sbatch pcangsd.slurm
+
+```
+
+
+```{bash, pcangsd mcav}
+cd ~/2bRAD/nwgom/mcav
+mkdir pcangsd
+cd pcangsd
+
+cp ../ANGSD/mcavNoClones.beagle.gz .
+
+
+source activate 2bRAD
+
+echo 'pcangsd -b mcavNoClones.beagle.gz -o mcavPcangsd --admix --inbreedSamples --pcadapt --selection' >> pcangsd
+
+launcher_creator.py -j pcangsd -n pcangsd -q shortq7 -t 06:00:00 -e $EMAIL -w 1 -N 1
+sbatch pcangsd.slurm
+
+```
+
+
+```{bash, pcangsd sint}
+cd ~/2bRAD/nwgom/sint
+mkdir pcangsd
+cd pcangsd
+
+cp ../ANGSD/sintNoClones.beagle.gz .
+
+
+source activate 2bRAD
+
+echo 'pcangsd -b sintNoClones.beagle.gz -o sintPcangsd --admix --inbreedSamples --pcadapt --selection' >> pcangsd
+
+launcher_creator.py -j pcangsd -n pcangsd -q shortq7 -t 06:00:00 -e $EMAIL -w 1 -N 1
+sbatch pcangsd.slurm
+
+```
+
+
+```{bash, pcangsd xesto}
+cd ~/2bRAD/nwgom/xesto
+mkdir pcangsd
+cd pcangsd
+
+cp ../ANGSD/xestoNoClones.beagle.gz .
+
+
+source activate 2bRAD
+
+echo 'pcangsd -b xestoNoClones.beagle.gz -o xestoPcangsd --admix --inbreedSamples --pcadapt --selection' >> pcangsd
+
+launcher_creator.py -j pcangsd -n pcangsd -q shortq7 -t 06:00:00 -e $EMAIL -w 1 -N 1
+sbatch pcangsd.slurm
+
+```
+
+
+Calculate population structure from genotype likelihoods using ```NGSadmix```: FIRST remove all clones/genotyping replicates! (we did this).
+```{bash, ngsadmix}
+cd ~/2bRAD/nwgom/sint/ANGSD
+mkdir ../ngsAdmix
+
+cp *beagle* ../ngsAdmix
+
+zipper.py -f bam -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cd ../ngsAdmix
+
+```
+
+Create a file with 20 replicate simulations for each value of K 
+```{bash, ngsLaunch}
+ngsAdmixLauncher.py -f sintNoClones.beagle.gz --maxK 10 -r 20 -n gomSint --launcher -e reckert2017@fau.edu
+
+sbatch --mem=200GB gomSintNgsAdmix.slurm
+
+```
+
+
+```{bash, ngsadmix}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+mkdir ../ngsAdmix
+
+cp *beagle* ../ngsAdmix
+
+zipper.py -f bam -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cd ../ngsAdmix
+
+```
+
+Create a file with 20 replicate simulations for each value of K 
+```{bash, ngsLaunch}
+ngsAdmixLauncher.py -f ofavNoClones.beagle.gz --maxK 10 -r 20 -n gomOfav --launcher -e reckert2017@fau.edu
+
+sbatch --mem=200GB gomOfavNgsAdmix.slurm
+
+```
+
+
+```{bash, ngsadmix}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+mkdir ../ngsAdmix
+
+cp *beagle* ../ngsAdmix
+
+zipper.py -f bam -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cd ../ngsAdmix
+
+```
+
+Create a file with 20 replicate simulations for each value of K 
+```{bash, ngsLaunch}
+ngsAdmixLauncher.py -f mcavNoClones.beagle.gz --maxK 10 -r 20 -n gomMcav --launcher -e reckert2017@fau.edu
+
+sbatch --mem=200GB gomMcavNgsAdmix.slurm
+
+```
+
+
+```{bash, ngsadmix}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+mkdir ../ngsAdmix
+
+cp *beagle* ../ngsAdmix
+
+zipper.py -f bam -a -9 --launcher -e reckert2017@fau.edu
+sbatch zip.slurm
+
+cd ../ngsAdmix
+
+```
+
+Create a file with 20 replicate simulations for each value of K 
+```{bash, ngsLaunch}
+ngsAdmixLauncher.py -f xestoNoClones.beagle.gz --maxK 10 -r 20 -n gomXesto --launcher -e reckert2017@fau.edu
+
+sbatch --mem=200GB gomXestoNgsAdmix.slurm
+
+```
+
+### Calculating most likely value of K
+Next, take the likelihood value from each run of NGSadmix and put them into a file that can be used with Clumpak to calculate the most likely K using the methods of Evanno et al. (2005).
+
+####**S. intersepta**
+
+```{bash, logfile}
+cd ~/2bRAD/nwgom/sint/ngsAdmix
+
+>gomSintNgsAdmixLogfile
+for log in gomSint*.log; do
+grep -Po 'like=\K[^ ]+' $log >> gomSintNgsAdmixLogfile;
+done
+
+```
+
+Format for CLUMPAK in R
+```{r, format Clumpak}
+R
+
+#You are now using R in the terminal
+
+logs <- as.data.frame(read.table("gomSintNgsAdmixLogfile"))
+
+#output is organized with 10, 11 preceding 1, 2, 3 etc.
+logs$K <- c(rep("10", 20), rep("1", 20), rep("2", 20), rep("3", 20),
+rep("4", 20), rep("5", 20), rep("6", 20), rep("7", 20), rep("8", 20), rep("9", 20))
+write.table(logs[, c(2, 1)], "gomSintNgsAdmixLogfile_formatted", row.names = F,
+        col.names = F, quote = F)
+quit()
+# No need to save workspace image [press 'n']
+n
+```
+
+Check that your formatted logfile has the appropriate number of entries
+```{bash}
+cat gomSintNgsAdmixLogfile_formatted | wc -l
+
+```
+
+make copies of .qopt files to run structure selector on (.Q files)
+```{bash, strselector format}
+for file in gomSint*.qopt; do
+filename=$(basename -- "$file" .qopt);
+cp "$file" "$filename".Q;
+done
+
+mkdir gomSintQ
+mv gomSint*Q gomSintQ
+
+zip -r gomSintQ.zip gomSintQ
+
+```
+
+
+#### **X. muta**
+
+```{bash, logfile}
+cd ~/2bRAD/nwgom/xesto/ngsAdmix
+
+>gomXestoNgsAdmixLogfile
+for log in gomXesto*.log; do
+grep -Po 'like=\K[^ ]+' $log >> gomXestoNgsAdmixLogfile;
+done
+
+```
+
+Format for CLUMPAK in R
+```{r, format Clumpak}
+R
+
+#You are now using R in the terminal
+
+logs <- as.data.frame(read.table("gomXestoNgsAdmixLogfile"))
+
+#output is organized with 10, 11 preceding 1, 2, 3 etc.
+logs$K <- c(rep("10", 20), rep("1", 20), rep("2", 20), rep("3", 20),
+rep("4", 20), rep("5", 20), rep("6", 20), rep("7", 20), rep("8", 20), rep("9", 20))
+write.table(logs[, c(2, 1)], "gomXestoNgsAdmixLogfile_formatted", row.names = F,
+        col.names = F, quote = F)
+quit()
+# No need to save workspace image [press 'n']
+n
+```
+
+Check that your formatted logfile has the appropriate number of entries
+```{bash}
+cat gomXestoNgsAdmixLogfile_formatted | wc -l
+
+```
+
+make copies of .qopt files to run structure selector on (.Q files)
+```{bash, strselector format}
+for file in gomXesto*.qopt; do
+filename=$(basename -- "$file" .qopt);
+cp "$file" "$filename".Q;
+done
+
+mkdir gomXestoQ
+mv gomXesto*Q gomXestoQ
+
+zip -r gomXestoQ.zip gomXestoQ
+
+```
+
+
+#### **M. cavernosa**
+
+```{bash, logfile}
+cd ~/2bRAD/nwgom/mcav/ngsAdmix
+
+>gomMcavNgsAdmixLogfile
+for log in gomMcav*.log; do
+grep -Po 'like=\K[^ ]+' $log >> gomMcavNgsAdmixLogfile;
+done
+
+```
+
+Format for CLUMPAK in R
+```{r, format Clumpak}
+R
+
+#You are now using R in the terminal
+
+logs <- as.data.frame(read.table("gomMcavNgsAdmixLogfile"))
+
+#output is organized with 10, 11 preceding 1, 2, 3 etc.
+logs$K <- c(rep("10", 20), rep("1", 20), rep("2", 20), rep("3", 20),
+rep("4", 20), rep("5", 20),rep("6", 20), rep("7", 20), rep("8", 20),
+rep("9", 20))
+write.table(logs[, c(2, 1)], "gomMcavNgsAdmixLogfile_formatted", row.names = F,
+        col.names = F, quote = F)
+quit()
+# No need to save workspace image [press 'n']
+n
+```
+
+Check that your formatted logfile has the appropriate number of entries
+```{bash}
+cat gomMcavNgsAdmixLogfile_formatted | wc -l
+
+```
+
+make copies of .qopt files to run structure selector on (.Q files)
+```{bash, strselector format}
+for file in gomMcav*.qopt; do
+filename=$(basename -- "$file" .qopt);
+cp "$file" "$filename".Q;
+done
+
+mkdir gomMcavQ
+mv gomMcav*Q gomMcavQ
+
+zip -r gomMcavQ.zip gomMcavQ
+
+```
+
+
+#### **O. faveolata**
+
+```{bash, logfile}
+cd ~/2bRAD/nwgom/ofav/ngsAdmix
+
+>gomOfavNgsAdmixLogfile
+for log in gomOfav*.log; do
+grep -Po 'like=\K[^ ]+' $log >> gomOfavNgsAdmixLogfile;
+done
+
+```
+
+Format for CLUMPAK in R
+```{r, format Clumpak}
+R
+
+#You are now using R in the terminal
+
+logs <- as.data.frame(read.table("gomOfavNgsAdmixLogfile"))
+
+#output is organized with 10, 11 preceding 1, 2, 3 etc.
+logs$K <- c(rep("10", 20), rep("1", 20), rep("2", 20), rep("3", 20),
+rep("4", 20), rep("5", 20),rep("6", 20), rep("7", 20), rep("8", 20),
+rep("9", 20))
+write.table(logs[, c(2, 1)], "gomOfavNgsAdmixLogfile_formatted", row.names = F,
+        col.names = F, quote = F)
+quit()
+# No need to save workspace image [press 'n']
+n
+```
+
+Check that your formatted logfile has the appropriate number of entries
+```{bash}
+cat gomOfavNgsAdmixLogfile_formatted | wc -l
+
+```
+
+make copies of .qopt files to run structure selector on (.Q files)
+```{bash, strselector format}
+for file in gomOfav*.qopt; do
+filename=$(basename -- "$file" .qopt);
+cp "$file" "$filename".Q;
+done
+
+mkdir gomOfavQ
+mv gomOfav*Q gomOfavQ
+
+zip -r gomOfavQ.zip gomOfavQ
+
+```
+
+```scp``` .zip and formatted logfile to local machine and upload to ```CLUMPAK``` (http://clumpak.tau.ac.il/bestK.html) and structure selector (https://lmme.ac.cn/StructureSelector/index.html)
+
+```scp``` *NoClones files and *Pcangsd files to local machine for further analyses with ```R```
+
+
+ 
+## S Y M B I O N T S ##
+***
+```{bash, mcav sym}
+cd ~/2bRAD/nwgom/mcav/
+mv mappedReads/symbionts .
+cd symbionts
+
+SYMGENOME=~/bin/symGenomes/symbConcatGenome
+2bRAD_bowtie2_launcher.py -f zoox -g $SYMGENOME --launcher -e reckert2017@fau.edu
+
+sbatch --mem=100GB maps.slurm
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -t 6:00:00 -N 5 -e reckert2017@fau.edu -q shortq7
+sbatch s2b.slurm
+
+```
+
+```{bash, ofav sym}
+cd ~/2bRAD/nwgom/ofav/
+mv mappedReads/symbionts .
+cd symbionts
+
+SYMGENOME=~/bin/symGenomes/symbConcatGenome
+2bRAD_bowtie2_launcher.py -f zoox -g $SYMGENOME --launcher -e reckert2017@fau.edu
+
+sbatch --mem=100GB maps.slurm
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -t 6:00:00 -N 5 -e reckert2017@fau.edu -q shortq7
+sbatch s2b.slurm
+
+```
+
+
+```{bash, sint sym}
+cd ~/2bRAD/nwgom/sint/
+mv mappedReads/symbionts .
+cd symbionts
+
+SYMGENOME=~/bin/symGenomes/symbConcatGenome
+2bRAD_bowtie2_launcher.py -f zoox -g $SYMGENOME --launcher -e reckert2017@fau.edu
+
+sbatch --mem=100GB maps.slurm
+
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -t 6:00:00 -N 5 -e reckert2017@fau.edu -q shortq7
+sbatch s2b.slurm
+
+```
+
+Count reads mapping to each chromosome for concatenated Symbiodiniaceae genome
+```{bash, sym2}
+#M. cavernosa
+cd ~/2bRAD/nwgom/mcav/symbionts
+>mcavZooxReads
+
+for i in *.bam; do
+echo $i >>mcavZooxReads;
+samtools idxstats $i | cut -f 1,3 >>mcavZooxReads;
+done
+
+#O. faveolata
+cd ~/2bRAD/nwgom/ofav/symbionts
+>ofavZooxReads
+
+for i in *.bam; do
+echo $i >>ofavZooxReads;
+samtools idxstats $i | cut -f 1,3 >>ofavZooxReads;
+done
+
+#S. intersepta
+cd ~/2bRAD/nwgom/sint/symbionts
+>sintZooxReads
+
+for i in *.bam; do
+echo $i >>sintZooxReads;
+samtools idxstats $i | cut -f 1,3 >>sintZooxReads;
+done
+
+```
+
+##mcav Job #1727799955 X
+  # job id: 1727799934 X
+  
+##ofav Job #1727800045 X
+  # job id: 1727800165 X
+
+##sint Job #1727800078 X
+  # job id: 1727800242 X
+  
+#xesto Job #1727801257 X
+  # job id: 1727801431 
+  
