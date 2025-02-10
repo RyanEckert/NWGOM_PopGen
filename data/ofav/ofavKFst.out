@@ -1,0 +1,4 @@
+pop1	pop2	fst	weightedFst
+Of_Deep1	Of_Deep2	0.064744	0.074052
+Of_Deep1	Of_Shal	0.006980	0.222342
+Of_Deep2	Of_Shal	0.089890	0.235304

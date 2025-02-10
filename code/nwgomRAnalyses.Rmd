@@ -56,11 +56,11 @@ if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load_gh("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis", "ropensci/rnaturalearthhires", "KarstensLab/microshades")
 
-pacman::p_load("cowplot", "car", "ggrepel", "ggspatial", "paletteer", "patchwork", "rnaturalearth", "sf", "Hmisc", "MCMC.OTU", "pairwiseAdonis", "RColorBrewer", "Redmonder", "flextable", "lubridate", "officer", "adegenet", "dendextend", "gdata", "ggdendro", "hierfstat", "kableExtra", "poppr", "reshape2", "StAMPP", "vcfR", "vegan", "boa", "magick", "sdmpredictors", "ggcorrplot", "tidyverse", "TeachingDemos", "LaplacesDemon", "adespatial", "ggnewscale", "ggbeeswarm", "multcomp", "rstatix", "R.utils", "graph4lg", "ggstance", "ggtreeExtra", "ggtree")
+pacman::p_load("flextable", "cowplot", "car", "ggrepel", "ggspatial", "paletteer", "patchwork", "rnaturalearth", "sf", "Hmisc", "MCMC.OTU", "pairwiseAdonis", "RColorBrewer", "Redmonder", "lubridate", "officer", "adegenet", "dendextend", "gdata", "ggdendro", "hierfstat", "kableExtra", "poppr", "reshape2", "StAMPP", "vcfR", "vegan", "boa", "magick", "sdmpredictors", "ggcorrplot", "tidyverse", "TeachingDemos", "LaplacesDemon", "adespatial", "ggnewscale", "ggbeeswarm", "multcomp", "rstatix", "R.utils", "graph4lg", "ggstance", "ggtreeExtra", "ggtree")
 
 options("scipen" = 10)
 
-# load("nwgom.RData")
+load("nwgom.RData")
 
 ```
 
@@ -128,7 +128,7 @@ pcaTheme = theme(axis.title.x = element_text(color = "black", size = 10),
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 8),
         legend.key.size = unit(5, "pt"),
-        panel.border = element_rect(color = "black", linewidth = 1),
+        panel.border = element_rect(color = "black", linewidth = 0.5),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
   
@@ -154,11 +154,11 @@ admixTheme = theme(
   legend.title = element_text(size = 8))
 
 violinTheme = theme(axis.title = element_text(color = "black", size = 12),
-        axis.ticks.x = element_blank(),
+        axis.ticks = element_blank(),
         axis.text.x = element_text(color = "black", size = 10),
         legend.position = "none",
         legend.key.size = unit(0.3, 'cm'),
-        panel.border = element_rect(color = "black", size = 1),
+        panel.border = element_rect(color = "black", linewidth = .5),
         panel.background = element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
@@ -168,7 +168,7 @@ zooxTheme = theme(plot.title = element_text(),
         panel.grid = element_blank(),
         # panel.background = element_blank(),
         panel.background = element_rect(fill = "gray85"),
-        panel.border = element_rect(fill = NA, color = "black", size = 0.75, linetype = "solid"),
+        panel.border = element_rect(fill = NA, color = "black", linewidth = 0.75, linetype = "solid"),
         panel.spacing.x = grid:::unit(0.05, "lines"),
         panel.spacing.y = grid:::unit(0.82, "lines"),
         axis.text.x = element_blank(),
@@ -212,7 +212,7 @@ nwgomSites$date = mdy(nwgomSites$date) %>% format("%d %b %Y")
 
 nwgomBanks = nwgomSites %>% group_by(bank) %>% summarise(latDD = mean(latDD), longDD = mean(longDD), n = n()) %>% droplevels()
 
-nwgomSampleSites = nwgomSites %>% group_by(bank, site, depthZone) %>% summarise(latDD = min(latDD), longDD = min(longDD))
+nwgomsampleSites = nwgomSites %>% group_by(bank, site, depthZone) %>% summarise(latDD = min(latDD), longDD = min(longDD))
 
 fgbnmsBounds = read_sf("../data/shp/FGBNMS_py.shp") %>% st_transform(crs = 4326)
 fgbnmsBounds$Bank = c("NA","NA","Geyer","NA","Bright","WFGB","NA","McGrail","NA","NA","NA","McGrail","EFGB","NA","NA","NA","NA","NA","NA")
@@ -294,7 +294,7 @@ inset = ggplot() +
   geom_sf(data = mcgrailBathy, color = "gray75", size = 0.25) +
   geom_sf(data = fgbnmsBounds %>% filter(Bank != "NA"), aes(fill = Bank), linewidth = 0.4, color = "black", alpha = 0.2) +
   geom_sf(data = fgbnmsBounds %>% filter(Bank == "NA"), fill = "black", linewidth = 0.4, color = "black", alpha = 0.2) +
-  geom_point(data = nwgomSampleSites, aes(x = longDD, y = latDD, fill = bank, shape = depthZone, size = depthZone), alpha = 0.75) +
+  geom_point(data = nwgomsampleSites, aes(x = longDD, y = latDD, fill = bank, shape = depthZone, size = depthZone), alpha = 0.75) +
   scale_fill_manual(values = gomPal, name = "Bank") +
   scale_shape_manual(values = c(21, 23), name = "Depth") +
   scale_size_manual(values = c(2.5, 2.25)) +
@@ -367,7 +367,7 @@ ggsave("../figures/figure1.png", plot = map, height = 7, width = 7, units = "in"
 ***
 
 ```{r, mcav clones}
-mcavCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!Sample %in% c("MGM010")) # list of bam files
+mcavCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM010")) # list of bam files
 
 mcavCloneMa = as.matrix(read.table("../data/mcav/mcavClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
 
@@ -455,7 +455,7 @@ ggsave("../figures/extras/mcavCloneDend.png", plot = mcavCloneDend, height = 9, 
 ***
 
 ```{r, sint clones}
-sintCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!Sample %in% c("SGM013", "SGM169", "SGM177"))
+sintCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM013", "SGM169", "SGM177"))
 
 sintCloneMa = as.matrix(read.table("../data/sint/sintClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
 
@@ -543,7 +543,7 @@ ggsave("../figures/extras/sintCloneDend.png", plot = sintCloneDend, height = 9, 
 ***
 
 ```{r, ofav clones}
-ofavCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!Sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121"))
+ofavCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121"))
 
 ofavCloneMa = as.matrix(read.table("../data/ofav/ofavClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
 
@@ -631,7 +631,7 @@ ggsave("../figures/extras/ofavCloneDend.png", plot = ofavCloneDend, height = 9, 
 ***
 
 ```{r, xesto clones}
-xestoCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!Sample %in% c("XGM013", "XGM067", "XGM129"))
+xestoCloneBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!sample %in% c("XGM013", "XGM067", "XGM129"))
 
 xestoCloneMa = as.matrix(read.table("../data/xesto/xestoClones.ibsMat")) # reads in IBS matrix produced by ANGSD 
 
@@ -722,9 +722,9 @@ ggsave("../figures/extras/xestoCloneDend.png", plot = xestoCloneDend, height = 8
 ***
 
 ```{r, mcav dend no clones, warning=FALSE, message=FALSE}
-mcavBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!Sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3"))# list of bams files and their populations (tech reps removed)
-mcavBams$Sample <- gsub("\\.[1-3]*$", "", mcavBams$Sample)
-mcavBams = mcavBams %>% dplyr::mutate(sample = Sample) %>% dplyr::select(-Sample) %>% dplyr::relocate(sample)
+mcavBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3"))# list of bams files and their populations (tech reps removed)
+mcavBams$sample <- gsub("\\.[1-3]*$", "", mcavBams$sample)
+mcavBams = mcavBams %>% dplyr::mutate(sample = sample) %>% dplyr::select(-sample) %>% dplyr::relocate(sample)
 
 mcavBams$bank = factor(mcavBams$bank)
 mcavBams$bank = factor(mcavBams$bank, levels = levels(mcavBams$bank)[c(5, 2, 1, 3, 4)])
@@ -849,7 +849,7 @@ mcavStructure
 ***
 
 ```{r}
-mcavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!Sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3"))
+mcavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3"))
 
 mcavData$depthZone = factor(mcavData$depthZone)
 mcavData$depthZone = factor(mcavData$depthZone, levels(mcavData$depthZone)[c(2,1)])
@@ -890,7 +890,7 @@ mcavPcaEig = eigen(mcavCov)
 mcavPcaVar = mcavPcaEig$values/sum(mcavPcaEig$values)*100
 head(mcavPcaVar)
 
-mcavPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!Sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3")) %>% dplyr::select("sample" = Sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
+mcavPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3")) %>% dplyr::select("sample" = sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
 
 mcavPcangsd$sitedepth = as.factor(paste(mcavPcangsd$bank, mcavPcangsd$depth, sep = " "))
 
@@ -917,8 +917,8 @@ mcavPcangsd$cluster = as.factor(mcavPcangsd$cluster)
 levels(mcavPcangsd$cluster) = c("Mc_Deep", "Mc_1", "Admixed")
 
 mcavBamsClusters = mcavPcangsd %>% dplyr::select(sample, cluster) %>% dplyr::arrange(sample) 
-mcavBamsSamples = read.delim("../data/mcav/bamsNoClones", header = FALSE)
-mcavBamsClusters$sample = mcavBamsSamples$V1
+mcavBamssamples = read.delim("../data/mcav/bamsNoClones", header = FALSE)
+mcavBamsClusters$sample = mcavBamssamples$V1
 
 # bamsClusters = as.data.frame(bamsClusters)
 
@@ -948,13 +948,16 @@ mcavPcaPlot12SA = ggplot() +
   scale_shape_manual(values = c(21, 23), name = "Depth Zone") +
   scale_fill_manual(values = gomPal, name = "Site") +
   scale_color_manual(values = gomPal, name = "Site") +
-  labs(x = paste0("PC 1 (", format(round(mcavPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(mcavPcaVar[2], 1), nsmall = 1), " %)")) +
+  labs(x = paste0("PC 1 (", format(round(mcavPcaVar[1], 1), nsmall = 1)," %)")) +
+  annotate(geom = "text", x = -0.1275, y = 0.027, label = paste0("PC 2 (", format(round(mcavPcaVar[2], 1), nsmall = 1), " %)"), size = 3.65, angle = 90) +
   guides(shape = guide_legend(override.aes = list(size = 2, stroke = 0.25, alpha = NA), order = 2, ncol = 1), fill = guide_legend(override.aes = list(shape = 22, size = 2, fill = gomPal[c(1,2,3,4,5)], alpha = NA), order = 1, ncol = 1)) +
+  coord_cartesian(xlim = c(-0.1, 0.225), clip = "off") +
   theme_bw()
 
 mcavPcaPlot12S = mcavPcaPlot12SA +
   pcaTheme +
-  theme(legend.position = c(0.87, 0.76))
+  theme(legend.position = c(0.87, 0.76),
+        axis.title.y = element_blank())
 
 mcavPcaPlot12S
 
@@ -967,6 +970,7 @@ mcavPcaPlot12LA = ggplot() +
   scale_fill_manual(values = mcavKColPal[c(1, 2, 7)], name = "Lineage") +
   labs(x = paste0("PC 1 (", format(round(mcavPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(mcavPcaVar[2], 1), nsmall = 1), " %)")) +
   guides(shape = "none", fill = guide_legend(override.aes = list(shape = 22, size = 2, fill = mcavKColPal[c(1, 2, 7)], alpha = NA), order = 1, ncol = 1))+
+  coord_cartesian(xlim = c(-0.1, 0.225), clip = "off") +
   theme_bw()
 
 mcavPcaPlot12L = mcavPcaPlot12LA +
@@ -982,7 +986,7 @@ mcavPcaPlot12L
 ***
 
 ```{r, mcav pca 1 plot}
-mcavPcaPlots = ((mcavPcaPlot12S + theme(axis.title.y = element_text(margin = ggplot2::margin(r = -20, unit = "pt")))) | mcavPcaPlot12L) +
+mcavPcaPlots = mcavPcaPlot12S + mcavPcaPlot12L +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         panel.background = element_rect(fill = "white"),
@@ -1063,6 +1067,8 @@ mcavAdmixPlot
 ***
 
 ```{r, mcav depth distribution}
+ticks = data.frame(y = c(seq(5,75,5)), x = 0.15, xend = 0.08)
+
 leveneTest(lm(depthm ~ cluster, data = mcavPcangsd))
 
 mcavDepthAov = welch_anova_test(depthm ~ cluster, data = subset(mcavPcangsd, subset = mcavPcangsd$cluster!="Admixed"))
@@ -1071,19 +1077,36 @@ mcavDF = mcavDepthAov$statistic[[1]]
 
 mcavDepthPH = games_howell_test(depthm ~ cluster, data = mcavPcangsd, conf.level = 0.95) %>% as.data.frame()
 
+mcavDepthComps = paste(mcavDepthPH$group1,"-",mcavDepthPH$group2, sep ="")
+# mcavComps = c("D1-D2", "D1-D3", "D1-D4", "D1-S1", "D1-S2", "D1-A",)
+mcavDepthPs = mcavDepthPH$p.adj
+
+mcDepthMultComp = mcavDepthPs < .05
+names(mcDepthMultComp) = mcavDepthComps
+mcDepthLet = multcompLetters(mcDepthMultComp)
+mcDepthLetters = mcDepthLet$Letters %>% as.data.frame()
+
+  
+mcavDepthLetters = data.frame(x = factor(rownames(mcDepthLetters)), y = 5,  grp = mcDepthLetters$.)
+
 mcavLineageViolinA = ggplot(data = mcavPcangsd, aes(x = cluster, y = depthm)) +
   annotate(geom = "rect", xmin = -Inf, xmax = Inf, ymin = 30, ymax = Inf,  fill = "black", alpha = 0.10, color = NA) +
   geom_violin(aes(fill = cluster),adjust = 1, linewidth = 0, color = "black", alpha = 0.75, width = 0.9, trim = F, scale = "area") +
     geom_beeswarm(aes(fill = cluster), shape = 21, size = 2, cex = 1.5, alpha = 0.5) +
   geom_violin(adjust = 1, linewidth = 0.4, color = "black", alpha = 1, width = 0.9, trim = F, fill = NA, scale = "area") +
   geom_boxplot(width = 0.1, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.6, alpha = 0.5) +
-  annotate(geom = "text", x = 2.75, y =65, label = bquote(italic("F")~" = "~.(mcavDF)*"; "~italic("p")~" < 0.001"), size = 3) +
+  annotate(geom = "text", x = 2.8, y = 75, label = bquote(italic("F")~" = "~.(mcavDF)*"; "~italic("p")~" < 0.001"), size = 3) +
+  geom_segment(data = ticks, aes(x = x, xend = xend, y = y), color = "black") +
+  annotate(geom = "text", x = mcavDepthLetters$x, y = mcavDepthLetters$y, label = mcavDepthLetters$grp) +
   scale_fill_discrete(type = mcavKColPal[c(1, 2, 7)], name = "Lineage") +
   scale_color_discrete(type = mcavKColPal[c(1, 2, 7)], name = "Lineage") +
   xlab("Lineage") +
   ylab("Depth (m)") +
   scale_y_reverse(breaks = seq(5, 90, 5)) +
-  theme_bw()
+  coord_cartesian(xlim = c(.75, 3.25), clip = "off") +
+  theme_bw()+
+  theme(axis.ticks.y = element_blank(),
+        panel.background = element_rect(linewidth = 0))
 
 mcavLineageViolin = mcavLineageViolinA + violinTheme
 
@@ -1093,11 +1116,108 @@ mcavLineageViolin
 
 <br>
 
+### Heterozygosity
+
+```{r, mcav het data}
+mcavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3"))
+
+mcavHetData = read.delim("../data/mcav/mcavHet.out", header = FALSE, sep = " ") %>% mutate(sample = mcavData$sample)  %>% rename("Het" = "V2") %>% left_join(mcavPcangsd) %>% select(sample, Het, cluster)
+  
+mcavHet = mcavData %>% left_join(mcavHetData)
+
+```
+
+
+```{r, mcav het AOV}
+mcavHetAOV = welch_anova_test(mcavHet, Het ~ cluster)
+mcavHetAOV$p
+
+mcavHetPH = games_howell_test(mcavHet, Het ~ cluster)
+
+mcavHetPH$p.adj
+
+mcavComps = paste(mcavHetPH$group1,"-",mcavHetPH$group2, sep ="")
+mcavPs = mcavHetPH$p.adj
+
+mcMultComp = mcavPs < .05
+names(mcMultComp) = mcavComps
+mcLet = multcompLetters(mcMultComp)
+mcLetters = mcLet$Letters %>% as.data.frame()
+  
+mcavHetLetters = data.frame(x = factor(rownames(mcLetters)), y = 0.0025,  grp = mcLetters$.)
+
+mcavFST = read.delim("../data/mcav/mcavKFst.out")
+
+```
+
+```{r, mcav het plots}
+mcavHetPlot = ggplot(data = mcavHet, aes(x = cluster, y = Het)) +
+  geom_violin(aes(fill = cluster, group = cluster), adjust = 1, linewidth = 0.4, color = "black", alpha = 1, trim = FALSE, scale = "area", width = 1) +
+  geom_beeswarm(aes(fill = cluster, group = cluster),shape = 21, cex = 0.5) +
+  geom_boxplot(aes(fill = cluster, group = cluster), width = 0.2, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.4, alpha = 0.5) +  xlab("Lineage") +
+  annotate(geom = "text", x = 2.85, y = 0, label = bquote(italic("F")~" = "~.(mcavHetAOV$statistic)*"; "~italic("p")~" < 0.001"), size = 3) +
+  geom_text(data = mcavHetLetters, aes(x = x, y = y, label = grp), size = 4) +
+  geom_segment(data = mcavFST, aes(y = 0.0022, x = pop1, xend = pop2)) +
+  annotate(geom = "text", x = 1.5, y = 0.0023, label = bquote(italic("F")["ST"]~" = "~.(round(mcavFST$weightedFst, 3)))) +
+  scale_fill_discrete(type = mcavKColPal[c(1,2,7)], name = "Lineage") +
+  xlab("Lineage") +
+  ylab("Heterozygosity") +
+  scale_y_continuous(breaks = seq(0, 0.0025, 0.0005)) +
+  coord_cartesian(expand = TRUE, xlim = c(0.85, 3.15), ylim = c(0, 0.0025)) +
+  theme_bw() + 
+  violinTheme
+
+mcavHetPlot
+
+```
+
+<br>
+
+### Nucleotide diversity plot
+
+```{r, mcav pi}
+mcavNpgList = list(read_tsv("../data/mcav/Mc_Deep.thetas.idx.pestPG") %>% mutate(lineage = "Mc_Deep"),
+               read_tsv("../data/mcav/Mc_1.thetas.idx.pestPG") %>% mutate(lineage = "Mc_1"))
+
+
+mcavPiAll = purrr::reduce(mcavNpgList, rbind) %>% 
+  dplyr::group_by(lineage) %>%
+  filter(tP != 0) %>%
+  mutate(tPps = tP/nSites) %>%
+  dplyr::summarize(tPps = mean(tPps))
+
+mcavPiAll$Ne = (mcavPiAll$tPps)/(4*2e-8)
+mcavPiAll
+
+mcavPiAll$lineage = factor(mcavPiAll$lineage)
+mcavPiAll$lineage = factor(mcavPiAll$lineage, levels = levels(mcavPiAll$lineage)[c(2,1)])
+
+
+
+```
+
+
+```{r, mcav nuvDiv plot}
+mcavNuclDivPlot = ggplot(mcavPiAll, aes(x = lineage, y = tPps, fill = lineage, group = lineage)) +
+  geom_bar(position = position_dodge2(preserve = "single"), stat = "identity", color = "black") +
+  scale_fill_manual(values = mcavKColPal) +
+  geom_text(position = position_dodge2(preserve = "single", width = 0.9), aes(y = tPps-.0015, label= scales::comma(round(Ne,0)), hjust = 0, fontface = "bold"), angle = 90, color = "black", ) +
+  labs(x = "Lineage", y = bquote("Nucleotide diversity ("*pi*")")) + 
+  theme_bw() +
+  violinTheme +
+  theme(axis.text.x = ggtext::element_markdown())
+  
+mcavNuclDivPlot
+
+```
+
+<br>
+
 ## Symbiodiniaceae
 ***
 
 ```{r, mcav sym}
-mcavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!Sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3")) %>% dplyr::select("sample" = Sample, "site" = bank, "depth" = depthZone)
+mcavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3")) %>% dplyr::select("sample" = sample, "site" = bank, "depth" = depthZone)
 
 mcavZoox = read.delim("../data/mcav/mcavZooxReads", header = FALSE, check.names = FALSE)
 
@@ -1139,6 +1259,7 @@ mcavZooxMaps$Durusdinium = rowSums(mcavZooxMaps[17:20])
 
 # keep genera totals and turn into proportions for barplot
 mcavZooxMaps = mcavZooxMaps[,c(1, 21:24)]
+
 mcavZooxProp = mcavZooxMaps
 mcavZooxProp$sum = apply(mcavZooxProp[, c(2:length(mcavZooxProp[1,]))], 1, function(x) {
 sum(x, na.rm = T)
@@ -1159,19 +1280,59 @@ sum(x, na.rm = T)
 mcavSym = mcavData %>% left_join(mcavZooxProp)
 
 mcavAdmixOrd = mcavAdmix %>% dplyr::select(sample, ord) 
-mcavPcangsdITS =mcavPcangsd %>% dplyr::select(sample, cluster)
+mcavPcangsdITS = mcavPcangsd %>% dplyr::select(sample, cluster)
 
 mcavSym = mcavSym %>% left_join(mcavAdmixOrd) %>% relocate(ord,.after = depth) %>% left_join(mcavPcangsdITS) %>% relocate(cluster, .after = depth)
 ```
 
+<br>
+
 ```{r, mcav sym permanova}
+mcavZooxPermData = mcavData %>% left_join(mcavZooxMaps) %>% left_join(mcavPcangsdITS) %>% relocate(cluster, .after = depth)
+
+mcavZooxPermData$depth = factor(mcavZooxPermData$depth)
+mcavZooxPermData$depth = factor(mcavZooxPermData$depth, levels = levels(mcavZooxPermData$depth)[c(2, 1)])
+
+mcavZooxPermData$site = factor(mcavZooxPermData$site)
+mcavZooxPermData$site = factor(mcavZooxPermData$site, levels = levels(mcavZooxPermData$site)[c(5, 2, 1, 3, 4)])
+
+head(mcavZooxPermData)
+
+
 set.seed(694)
 
-mcavSymPerm = adonis2(decostand(mcavSym[, c(6:((ncol(mcavSym))))], "normalize") ~ site * depth * cluster, data = mcavSym, permutations = 9999, method = "bray")
+
+mcavSymPerm = adonis2(decostand(mcavZooxPermData[ c(5:((ncol(mcavZooxPermData))))], "normalize") ~ depth * site, data = mcavZooxPermData, permutations = 9999, method = "bray", sqrt.dist = TRUE, by = "terms")
 
 mcavSymPerm
 
+mcavSymPermPW = pairwise.adonis2(decostand(mcavZooxPermData[ c(5:((ncol(mcavZooxPermData))))], "normalize") ~ site, data = mcavZooxPermData, nperm = 9999, method = "bray", sqrt.dist = TRUE, by = "terms")
+
+mcavSymPermPW
+
 ```
+
+
+M. cavernosa lineage  vs Symbiodiniaceae B-C distance
+
+```{r, procrustes its2 snps}
+mcavZooxDist = mcavZooxPermData[ c(5:ncol(mcavZooxPermData))] %>% decostand("normalize") %>% vegdist(method = "bray")
+
+mcavZooxPCoA = cmdscale(mcavZooxDist, eig = TRUE, x.ret = TRUE)
+
+mcavAdmixDist = mcavAdmixK2[c(5:ncol(mcavAdmixK2))] %>% vegdist(method = "euclidean")
+
+mcavAdmixPCoA = cmdscale(mcavAdmixDist, eig = TRUE, x.ret = TRUE)
+
+set.seed(981) 
+mcavProcrustes = protest(X = mcavAdmixPCoA, Y = mcavZooxPCoA , permutations = 9999)
+
+mcavProcrustes
+
+
+```
+
+<br>
 
 ```{r, mcav sym 2}
 mcavSym$depth = factor(mcavSym$depth)
@@ -1247,20 +1408,27 @@ mcavZooxPlot
 ***
 
 ```{r, all mcav plots}
-
 mcavPlot1 = mcavStructure + inset_element(mcavImg, -.1,.7,.3,1, align_to = "full", ignore_tag = TRUE)
-mcavPlot2 = (mcavPcaPlots + mcavLineageViolin) + plot_layout(guides = "collect")
-mcavPlot3 = mcavAdmixPlot + mcavZooxPlot
+mcavPlot2 = (mcavPcaPlots) + plot_layout(guides = "collect")
+mcavPlot3 = (mcavLineageViolin + theme(axis.text.y = element_text(margin = ggplot2::margin(r = -15, unit = "pt")))) + mcavHetPlot + mcavNuclDivPlot
+mcavPlot4 = mcavAdmixPlot + mcavZooxPlot
 
-mcavPlots =  mcavPlot1 + mcavPlot2 + mcavPlot3 +
-  plot_layout(heights = c(2,1,1)) +
+
+
+# theme(axis.title.y = element_text(margin = ggplot2::margin(r = -20, unit = "pt"))
+
+
+mcavPlots =  mcavPlot1 + mcavPlot2 + mcavPlot3 + mcavPlot4+
+  plot_layout(heights = c(2,1,1,1)) +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         legend.spacing = unit(-5, "pt"),
         legend.key = element_blank(),
         legend.background = element_blank())
 
-ggsave("../figures/figure2.png", plot = mcavPlots, height = 11, width = 12, units = "in", dpi = 300)
+ggsave("../figures/figure2.png", plot = mcavPlots, height = 14, width = 12, units = "in", dpi = 300)
+
+ggsave("../figures/figure2.svg", plot = mcavPlots, height = 14, width = 12, units = "in", dpi = 300)
 
 ```
 
@@ -1275,10 +1443,10 @@ ggsave("../figures/figure2.png", plot = mcavPlots, height = 11, width = 12, unit
 ***
 
 ```{r, sint dend no clones, warning=FALSE, message=FALSE}
-sintBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!Sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3"))
+sintBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3"))
 
-sintBams$Sample <- gsub("\\.[1-3]*$", "", sintBams$Sample)
-sintBams = sintBams %>% dplyr::mutate(sample = Sample) %>% dplyr::select(-Sample) %>% dplyr::relocate(sample)
+sintBams$sample <- gsub("\\.[1-3]*$", "", sintBams$sample)
+sintBams = sintBams %>% dplyr::relocate(sample)
 
 sintBams$bank = factor(sintBams$bank)
 sintBams$bank = factor(sintBams$bank, levels = levels(sintBams$bank)[c(5, 2, 1, 3, 4)])
@@ -1402,7 +1570,7 @@ sintStructure
 ***
 
 ```{r, sint pca data}
-sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!Sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3"))
+sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3"))
 
 sintData$depthZone = factor(sintData$depthZone)
 sintData$depthZone = factor(sintData$depthZone, levels(sintData$depthZone)[c(2,1)])
@@ -1447,7 +1615,7 @@ sintPcaEig = eigen(sintCov)
 sintPcaVar = sintPcaEig$values/sum(sintPcaEig$values)*100
 head(sintPcaVar)
 
-sintPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!Sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3")) %>% dplyr::select("sample" = Sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
+sintPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3")) %>% dplyr::select("sample" = sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
 
 sintPcangsd$sitedepth = as.factor(paste(sintPcangsd$bank, sintPcangsd$depth, sep = " "))
 
@@ -1474,8 +1642,8 @@ sintPcangsd$cluster = as.factor(sintPcangsd$cluster)
 levels(sintPcangsd$cluster) = c("Si_Deep", "Si_1", "Admixed")
 
 sintBamsClusters = sintPcangsd %>% dplyr::select(sample, cluster) %>% dplyr::arrange(sample) 
-sintBamsSamples = read.delim("../data/sint/bamsNoClones", header = FALSE)
-sintBamsClusters$sample = sintBamsSamples$V1
+sintBamssamples = read.delim("../data/sint/bamsNoClones", header = FALSE)
+sintBamsClusters$sample = sintBamssamples$V1
 
 # bamsClusters = as.data.frame(bamsClusters)
 
@@ -1505,13 +1673,16 @@ sintPcaPlot12SA = ggplot() +
   scale_shape_manual(values = c(21, 23), name = "Depth Zone") +
   scale_fill_manual(values = gomPal, name = "Site") +
   scale_color_manual(values = gomPal, name = "Site") +
-  labs(x = paste0("PC 1 (", format(round(sintPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(sintPcaVar[2], 1), nsmall = 1), " %)")) +
+  labs(x = paste0("PC 1 (", format(round(sintPcaVar[1], 1), nsmall = 1)," %)")) +
+  annotate(geom = "text", x = -0.24, y = -0.033, label = paste0("PC 2 (", format(round(sintPcaVar[2], 1), nsmall = 1), " %)"), size = 3.65, angle = 90) +
   guides(shape = guide_legend(override.aes = list(size = 4, stroke = 0.25, alpha = NA), order = 2, ncol = 1), fill = guide_legend(override.aes = list(shape = 22, size = 4, fill = gomPal[c(1,2,3,4,5)], alpha = NA), order = 1, ncol = 1)) +
+  coord_cartesian(xlim = c(-.2,.25), clip = "off") +
   theme_bw()
 
 sintPcaPlot12S = sintPcaPlot12SA +
   pcaTheme +
-  theme(legend.position = c(0.87, 0.76))
+  theme(legend.position = c(0.87, 0.76),
+        axis.title.y = element_blank())
 
 sintPcaPlot12S
 
@@ -1524,6 +1695,7 @@ sintPcaPlot12LA = ggplot() +
   scale_fill_manual(values = sintKColPal[c(1,2,7)], name = "Lineage") +
   labs(x = paste0("PC 1 (", format(round(sintPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(sintPcaVar[2], 1), nsmall = 1), " %)")) +
   guides(shape = "none", fill = guide_legend(override.aes = list(shape = 22, size = 4, fill = sintKColPal[c(1,2,7)], alpha = NA), order = 1, ncol = 1))+
+  coord_cartesian(xlim = c(-.2,.25), clip = "off") +
   theme_bw()
 
 sintPcaPlot12L = sintPcaPlot12LA +
@@ -1536,7 +1708,7 @@ sintPcaPlot12L = sintPcaPlot12LA +
 Put all plots together
 
 ```{r, pca plots combined}
-sintPcaPlots = ((sintPcaPlot12S + theme(axis.title.y = element_text(margin = ggplot2::margin(r = -20, unit = "pt")))) | sintPcaPlot12L) +
+sintPcaPlots = (sintPcaPlot12S | sintPcaPlot12L) +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         panel.background = element_rect(fill = "white"),
@@ -1622,18 +1794,34 @@ sintDF = sintDepthAov$statistic[[1]]
 
 sintDepthPH = games_howell_test(depthm ~ cluster, data = sintPcangsd, conf.level = 0.95) %>% as.data.frame()
 
+sintDepthComps = paste(sintDepthPH$group1,"-",sintDepthPH$group2, sep ="")
+# sintComps = c("D1-D2", "D1-D3", "D1-D4", "D1-S1", "D1-S2", "D1-A",)
+sintDepthPs = sintDepthPH$p.adj
+
+siDepthMultComp = sintDepthPs < .05
+names(siDepthMultComp) = sintDepthComps
+siDepthLet = multcompLetters(siDepthMultComp)
+siDepthLetters = siDepthLet$Letters %>% as.data.frame()
+
+  
+sintDepthLetters = data.frame(x = factor(rownames(siDepthLetters)), y = 5,  grp = siDepthLetters$.)
+
+
 sintLineageViolinA = ggplot(data = sintPcangsd, aes(x = cluster, y = depthm)) +
   annotate(geom = "rect", xmin = -Inf, xmax = Inf, ymin = 30, ymax = Inf,  fill = "black", alpha = 0.10, color = NA) +
   geom_violin(aes(fill = cluster),adjust = 1, linewidth = 0, color = "black", alpha = 0.75, width = 0.9, trim = F, scale = "area") +
     geom_beeswarm(aes(fill = cluster), shape = 21, size = 2, cex = 1.5, alpha = 0.5) +
   geom_violin(adjust = 1, linewidth = 0.4, color = "black", alpha = 1, width = 0.9, trim = F, fill = NA, scale = "area") +
   geom_boxplot(width = 0.1, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.6, alpha = 0.5) +
-  annotate(geom = "text", x = 2.75, y =65, label = bquote(italic("F")~" = "~.(sintDF)*"; "~italic("p")~" < 0.001"), size = 3) +
+  geom_segment(data = ticks[c(1:13),], aes(x = x, xend = xend, y = y), color = "black") +
+  annotate(geom = "text", x = 2.85, y = 65, label = bquote(italic("F")~" = "~.(sintDF)*"; "~italic("p")~" = 0.131"), size = 3) +
+  annotate(geom = "text", x = sintDepthLetters$x, y = (sintDepthLetters$y - 3), label = sintDepthLetters$grp) +
   scale_fill_discrete(type = sintKColPal[c(1,2,7)], name = "Lineage") +
   scale_color_discrete(type = sintKColPal[c(1,2,7)], name = "Lineage") +
   xlab("Lineage") +
   ylab("Depth (m)") +
   scale_y_reverse(breaks = seq(5, 90, 5)) +
+  coord_cartesian(xlim = c(0.75, 3.25),clip = "off") +
   theme_bw()
 
 sintLineageViolin = sintLineageViolinA + violinTheme 
@@ -1644,10 +1832,106 @@ sintLineageViolin
 
 <br>
 
+### Heterozygosity
+
+```{r, sint het data}
+sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3"))  
+
+sintHetData = read.delim("../data/sint/sintHet.out", header = FALSE, sep = " ") %>% mutate(sample = sintData$sample)  %>% rename("Het" = "V2") %>% left_join(sintPcangsd) %>% select(sample, Het, cluster)
+  
+sintHet = sintData %>% left_join(sintHetData)
+
+```
+
+
+```{r, sint het AOV}
+sintHetAOV = welch_anova_test(sintHet, Het ~ cluster)
+sintHetAOV$p
+
+sintHetPH = games_howell_test(sintHet, Het ~ cluster)
+
+sintHetPH$p.adj
+
+sintComps = paste(sintHetPH$group1,"-",sintHetPH$group2, sep ="")
+sintPs = sintHetPH$p.adj
+
+siMultComp = sintPs < .05
+names(siMultComp) = sintComps
+siLet = multcompLetters(siMultComp)
+siLetters = siLet$Letters %>% as.data.frame()
+  
+sintHetLetters = data.frame(x = factor(rownames(siLetters)), y = 0.0025,  grp = siLetters$.)
+
+sintFST = read.delim("../data/sint/sintKFst.out")
+
+```
+
+```{r, het plots}
+sintHetPlot = ggplot(data = sintHet, aes(x = cluster, y = Het)) +
+  geom_violin(aes(fill = cluster, group = cluster), adjust = 1, linewidth = 0.4, color = "black", alpha = 1, trim = TRUE, scale = "area", width = 1.2) +
+  geom_beeswarm(aes(fill = cluster), shape = 21, cex = 0.5) +
+  geom_boxplot(aes(fill = cluster, group = cluster), width = 0.2, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.4, alpha = 0.5) +  xlab("Lineage") +
+  geom_text(data = sintHetLetters, aes(x = x, y = y, label = grp), size = 4) +
+   annotate(geom = "text", x = 2.9, y = 0, label = bquote(italic("F")~" = "~.(sintHetAOV$statistic)*"; "~italic("p")~" < 0.001"), size = 3) +
+  geom_segment(data = sintFST, aes(y = 0.0022, x = pop1, xend = pop2)) +
+  annotate(geom = "text", x = 1.5, y = 0.0023, label = bquote(italic("F")["ST"]~" = "~.(round(sintFST$weightedFst, 3)))) +
+  scale_fill_discrete(type = sintKColPal[c(1,2,7)], name = "Lineage") +
+  xlab("Lineage") +
+  ylab("Heterozygosity") +
+  scale_y_continuous(breaks = seq(0, 0.0025, 0.0005)) +
+  coord_cartesian(expand = TRUE, xlim = c(0.85, 3.15), ylim = c(0, 0.0025)) +
+  theme_bw() + 
+  violinTheme +
+  theme(panel.border = element_rect(linewidth = 1))
+
+sintHetPlot
+
+```
+
+<br>
+
+### Nucleotide diversity plot
+
+```{r, sint pi}
+sintNpgList = list(read_tsv("../data/sint/Si_Deep.thetas.idx.pestPG") %>% mutate(lineage = "Si_Deep"),
+               read_tsv("../data/sint/Si_1.thetas.idx.pestPG") %>% mutate(lineage = "Si_1"))
+
+
+sintPiAll = purrr::reduce(sintNpgList, rbind) %>% 
+  dplyr::group_by(lineage) %>%
+  filter(tP != 0) %>%
+  mutate(tPps = tP/nSites) %>%
+  dplyr::summarize(tPps = mean(tPps))
+
+sintPiAll$Ne = (sintPiAll$tPps)/(4*2e-8)
+sintPiAll
+
+sintPiAll$lineage = factor(sintPiAll$lineage)
+sintPiAll$lineage = factor(sintPiAll$lineage, levels = levels(sintPiAll$lineage)[c(2,1)])
+
+```
+
+
+```{r, sint nuvDiv plot}
+sintNuclDivPlot = ggplot(sintPiAll, aes(x = lineage, y = tPps, fill = lineage, group = lineage)) +
+  geom_bar(position = position_dodge2(preserve = "single"), stat = "identity", color = "black") +
+  scale_fill_manual(values = sintKColPal) +
+  geom_text(position = position_dodge2(preserve = "single", width = 0.9), aes(y = tPps-.0015, label= scales::comma(round(Ne,0)), hjust = 0, fontface = "bold"), angle = 90, color = "black", ) +
+  labs(x = "Lineage", y = bquote("Nucleotide diversity ("*pi*")")) + 
+  theme_bw() +
+  violinTheme +
+  theme(axis.text.x = ggtext::element_markdown())
+  
+sintNuclDivPlot
+
+```
+
+<br>
+
 ## Symbiodiniaceae
 
 ```{r, sint sym}
-sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!Sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3")) %>% dplyr::select("sample" = Sample, "site" = bank, "depth" = depthZone)
+sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3")) %>% dplyr::select("site" = bank, "depth" = depthZone)
 
 sintZoox = read.delim("../data/sint/sintZooxReads", header = FALSE, check.names = FALSE)
 
@@ -1714,14 +1998,51 @@ sintPcangsdITS =sintPcangsd %>% dplyr::select(sample, cluster)
 sintSym = sintSym %>% left_join(sintAdmixOrd) %>% relocate(ord,.after = depth) %>% left_join(sintPcangsdITS) %>% relocate(cluster, .after = depth)
 ```
 
+
 ```{r, sint sym permanova}
+sintZooxPermData = sintData %>% left_join(sintZooxMaps) %>% left_join(sintPcangsdITS) %>% relocate(cluster, .after = depth)
+
+sintZooxPermData$depth = factor(sintZooxPermData$depth)
+sintZooxPermData$depth = factor(sintZooxPermData$depth, levels = levels(sintZooxPermData$depth)[c(2, 1)])
+
+sintZooxPermData$site = factor(sintZooxPermData$site)
+sintZooxPermData$site = factor(sintZooxPermData$site, levels = levels(sintZooxPermData$site)[c(5, 2, 1, 3, 4)])
+
+head(sintZooxPermData)
+
+
 set.seed(694)
 
-sintSymPerm = adonis2(decostand(sintSym[, c(6:((ncol(sintSym))))], "normalize") ~ site*depth*cluster, data = sintSym, permutations = 9999, method = "bray")
+
+sintSymPerm = adonis2(decostand(sintZooxPermData[ c(5:((ncol(sintZooxPermData))))], "normalize") ~ depth * site, data = sintZooxPermData, permutations = 9999, method = "bray", sqrt.dist = TRUE, by = "terms")
 
 sintSymPerm
 
+sintSymPermPW = pairwise.adonis2(decostand(sintZooxPermData[ c(5:((ncol(sintZooxPermData))))], "normalize") ~ site, data = sintZooxPermData, nperm = 9999, method = "bray", sqrt.dist = TRUE, by = "terms")
+
+sintSymPermPW
+
 ```
+
+
+*S. intersepta* lineage  vs Symbiodiniaceae B-C distance
+
+```{r, procrustes its2 snps}
+sintZooxDist = sintZooxPermData[ c(5:ncol(sintZooxPermData))] %>% decostand("normalize") %>% vegdist(method = "bray")
+
+sintZooxPCoA = cmdscale(sintZooxDist, eig = TRUE, x.ret = TRUE)
+
+sintAdmixDist = sintAdmixK2[c(5:ncol(sintAdmixK2))] %>% vegdist(method = "euclidean")
+
+sintAdmixPCoA = cmdscale(sintAdmixDist, eig = TRUE, x.ret = TRUE)
+
+set.seed(981) 
+sintProcrustes = protest(X = sintAdmixPCoA, Y = sintZooxPCoA , permutations = 9999)
+
+sintProcrustes
+
+```
+
 
 ```{r, sint sym 2}
 sintSym$depth = factor(sintSym$depth)
@@ -1799,24 +2120,25 @@ sintZooxPlot
 
 ```{r, all sint plots}
 sintPlot1 = sintStructure + inset_element(sintImg, -0.1, 0.7, 0.3, 1, align_to = "full", ignore_tag = TRUE)
-sintPlot2 = (sintPcaPlots + sintLineageViolin) + plot_layout(guides = "collect")
-sintPlot3 = sintAdmixPlot + sintZooxPlot
+sintPlot2 = (sintPcaPlots) + plot_layout(guides = "collect")
+sintPlot3 = (sintLineageViolin+ theme(axis.text.y = element_text(margin = ggplot2::margin(r = -15, unit = "pt")))) + sintHetPlot + sintNuclDivPlot
+sintPlot4 = sintAdmixPlot + sintZooxPlot
 
-sintPlots =  sintPlot1 + sintPlot2 + sintPlot3 +
-  plot_layout(heights = c(2,1,1)) +
+sintPlots =  sintPlot1 + sintPlot2 + sintPlot3 + sintPlot4 +
+  plot_layout(heights = c(2,1,1,1)) +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         legend.spacing = unit(-5, "pt"),
         legend.key = element_blank(),
         legend.background = element_blank())
 
-ggsave("../figures/figure3.png", plot = sintPlots, height = 11, width = 12, units = "in", dpi = 300)
+ggsave("../figures/figure3.png", plot = sintPlots, height = 14, width = 12, units = "in", dpi = 300)
+
+ggsave("../figures/figure3.svg", plot = sintPlots, height = 14, width = 12, units = "in", dpi = 300)
 
 ```
 
 <br><br>
-
-
 
 # *Orbicella faveolata*
 ***
@@ -1825,10 +2147,10 @@ ggsave("../figures/figure3.png", plot = sintPlots, height = 11, width = 12, unit
 ***
 
 ```{r, ofav dend no clones, warning=FALSE, message=FALSE}
-ofavBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!Sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005"))# list of bams files and their populations (tech reps removed)
+ofavBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005"))# list of bams files and their populations (tech reps removed)
 
-ofavBams$Sample <- gsub("\\.[1-3]*$", "", ofavBams$Sample)
-ofavBams = ofavBams %>% dplyr::mutate(sample = Sample) %>% dplyr::select(-Sample) %>% dplyr::relocate(sample)
+ofavBams$sample <- gsub("\\.[1-3]*$", "", ofavBams$sample)
+ofavBams = ofavBams %>% dplyr::mutate(sample = sample) %>% dplyr::select(-sample) %>% dplyr::relocate(sample)
 
 ofavBams$bank = factor(ofavBams$bank)
 ofavBams$bank = factor(ofavBams$bank, levels = levels(mcavBams$bank))
@@ -1952,7 +2274,7 @@ ofavStructure
 ***
 
 ```{r}
-ofavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!Sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005"))
+ofavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005"))
 
 ofavData$depthZone = factor(ofavData$depthZone)
 ofavData$depthZone = factor(ofavData$depthZone, levels(ofavData$depthZone)[c(2,1)])
@@ -1995,7 +2317,7 @@ ofavPcaEig = eigen(ofavCov)
 ofavPcaVar = ofavPcaEig$values/sum(ofavPcaEig$values)*100
 head(ofavPcaVar)
 
-ofavPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!Sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005")) %>% dplyr::select("sample" = Sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
+ofavPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005")) %>% dplyr::select("sample" = sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
 
 ofavPcangsd$sitedepth = as.factor(paste(ofavPcangsd$bank, ofavPcangsd$depth, sep = " "))
 
@@ -2022,8 +2344,8 @@ ofavPcangsd$cluster = as.factor(ofavPcangsd$cluster)
 levels(ofavPcangsd$cluster) = c("Of_Deep1", "Of_Deep2", "Of_Shal", "Admixed")
 
 bamsClusters = ofavPcangsd %>% dplyr::select(sample, cluster) %>% dplyr::arrange(sample) 
-bamsSamples = read.delim("../data/ofav/bamsNoClones", header = FALSE)
-bamsClusters$sample = bamsSamples$V1
+bamssamples = read.delim("../data/ofav/bamsNoClones", header = FALSE)
+bamsClusters$sample = bamssamples$V1
 
 # bamsClusters = as.data.frame(bamsClusters)
 
@@ -2052,13 +2374,16 @@ ofavPcaPlot12SA = ggplot() +
   scale_shape_manual(values = c(21, 23), name = "Depth Zone") +
   scale_fill_manual(values = gomPal, name = "Site") +
   scale_color_manual(values = gomPal, name = "Site") +
-  labs(x = paste0("PC 1 (", format(round(ofavPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(ofavPcaVar[2], 1), nsmall = 1), " %)")) +
+  labs(x = paste0("PC 1 (", format(round(ofavPcaVar[1], 1), nsmall = 1)," %)")) +
+  annotate(geom = "text", x = -0.11, y = 0.15, label = paste0("PC 2 (", format(round(ofavPcaVar[2], 1), nsmall = 1), " %)"), size = 3.65, angle = 90) +
   guides(shape = guide_legend(override.aes = list(size = 4, stroke = 0.25, alpha = NA), order = 2, ncol = 1), fill = guide_legend(override.aes = list(shape = 22, size = 4, fill = gomPal[c(1,2)], alpha = NA), order = 1, ncol = 1)) +
+  coord_cartesian(xlim = c(-.09,.12), clip = "off") +
   theme_bw()
 
 ofavPcaPlot12S = ofavPcaPlot12SA +
   pcaTheme +
-  theme(legend.position = c(0.87, 0.82))
+  theme(legend.position = c(0.87, 0.82),
+        axis.title.y = element_blank())
 
 ofavPcaPlot12S
 
@@ -2071,6 +2396,7 @@ ofavPcaPlot12LA = ggplot() +
   scale_fill_manual(values = ofavKColPal[c(1,3,2)], name = "Lineage") +
   labs(x = paste0("PC 1 (", format(round(ofavPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(ofavPcaVar[2], 1), nsmall = 1), " %)")) +
   guides(shape = "none", fill = guide_legend(override.aes = list(shape = 22, size = 4, alpha = NA, fill = ofavKColPal[c(1,3,2)]), order = 1, ncol = 1))+
+  coord_cartesian(xlim = c(-.09,.12), clip = "off") +
   theme_bw()
 
 ofavPcaPlot12L = ofavPcaPlot12LA +
@@ -2085,7 +2411,7 @@ ofavPcaPlot12L = ofavPcaPlot12LA +
 Put all plots together
 
 ```{r, ofav pca 1 plot}
-ofavPcaPlots = ((ofavPcaPlot12S + theme(axis.title.y = element_text(margin = ggplot2::margin(r = -20, unit = "pt")))) | ofavPcaPlot12L) +
+ofavPcaPlots = (ofavPcaPlot12S + ofavPcaPlot12L) +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         panel.background = element_rect(fill = "white"),
@@ -2174,18 +2500,34 @@ ofavDF = ofavDepthAov$statistic[[1]]
 
 ofavDepthPH = games_howell_test(depthm ~ cluster, data = subset(ofavPcangsd, subset = ofavPcangsd$cluster!="Admixed"), conf.level = 0.95) %>% as.data.frame()
 
+ofavDepthComps = paste(ofavDepthPH$group1,"-",ofavDepthPH$group2, sep ="")
+# ofavComps = c("D1-D2", "D1-D3", "D1-D4", "D1-S1", "D1-S2", "D1-A",)
+ofavDepthPs = ofavDepthPH$p.adj
+
+ofDepthMultComp = ofavDepthPs < .05
+names(ofDepthMultComp) = ofavDepthComps
+ofDepthLet = multcompLetters(ofDepthMultComp)
+ofDepthLetters = ofDepthLet$Letters %>% as.data.frame()
+
+  
+ofavDepthLetters = data.frame(x = factor(rownames(ofDepthLetters)), y = 5,  grp = ofDepthLetters$.)
+
+
 ofavLineageViolinA = ggplot(data = subset(ofavPcangsd, subset = ofavPcangsd$cluster!="Admixed"), aes(x = cluster, y = depthm)) +
   annotate(geom = "rect", xmin = -Inf, xmax = Inf, ymin = 30, ymax = Inf,  fill = "black", alpha = 0.10, color = NA) +
   geom_violin(aes(fill = cluster),adjust = 1, linewidth = 0, color = "black", alpha = 0.75, width = 0.9, trim = F, scale = "area") +
     geom_beeswarm(aes(fill = cluster), shape = 21, size = 2, cex = 1.5, alpha = 0.5) +
   geom_violin(adjust = 1, linewidth = 0.4, color = "black", alpha = 1, width = 0.9, trim = F, fill = NA, scale = "area") +
   geom_boxplot(width = 0.1, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.6, alpha = 0.5) +
+  geom_segment(data = ticks[c(3:13),], aes(x = x, xend = xend, y = y)) +
   annotate(geom = "text", x = 2.75, y =65, label = bquote(italic("F")~" = "~.(ofavDF)*"; "~italic("p")~" < 0.001"), size = 3) +
+  annotate(geom = "text", x = ofavDepthLetters$x, y = ofavDepthLetters$y, label = ofavDepthLetters$grp) +
   scale_fill_discrete(type = ofavKColPal[c(1,3,2)], name = "Lineage") +
   scale_color_discrete(type = ofavKColPal[c(1,3,2)], name = "Lineage") +
   xlab("Lineage") +
   ylab("Depth (m)") +
   scale_y_reverse(breaks = seq(5, 90, 5)) +
+  coord_cartesian(xlim = c(0.75, 3.25), clip = "off") +
   theme_bw()
 
 ofavLineageViolin = ofavLineageViolinA + violinTheme 
@@ -2196,11 +2538,188 @@ ofavLineageViolin
 
 <br>
 
+### Lineage differentiation
+
+Measuring with global weighted FST calculated from SFS
+
+First prepare and sort FST for plotting
+
+```{r}
+of.pops = c("Of_Deep1", "Of_Deep2", "Of_Shal") 
+
+# reads in fst 
+ofFstMa1 <- read.delim("../data/ofav/ofavKFst.out") %>% dplyr::select(-fst) %>% df_to_pw_mat(., "pop1", "pop2", "weightedFst")
+
+colnames(ofFstMa1) = of.pops
+rownames(ofFstMa1) = of.pops
+ofFstMa = ofFstMa1
+
+upperTriangle(ofFstMa, byrow = TRUE) <- lowerTriangle(ofFstMa)
+ofFstMa <- ofFstMa[,of.pops] %>%
+  .[of.pops,]
+ofFstMa[lower.tri(ofFstMa)] <- NA
+ofFstMa <- as.data.frame(ofFstMa)
+
+# rearrange and reformat matrix
+ofFstMa$Pop = factor(row.names(ofFstMa), levels = unique(of.pops))
+
+
+
+# melt matrix data (turn from matrix into long dataframe)
+ofFst = melt(ofFstMa, id.vars = "Pop", value.name = "Fst", variable.name = "Pop2", na.rm = FALSE)
+
+ofFst$Fst = round(ofFst$Fst, 3)
+
+ofFst$site = ofFst$Pop
+ofFst$site = factor(ofFst$site)
+
+ofFst$site2 = ofFst$Pop2
+
+```
+
+Construct a heatmap of FST values
+
+```{r, fstPlot}
+ofFstHeatmapA = ggplot(data = ofFst %>% filter(Fst != 0), aes(Pop, Pop2, fill = as.numeric(as.character(Fst)))) +
+  geom_tile(color = "white") +
+  geom_segment(data = ofFst, aes(x = 0.475, xend = 0.25, y = Pop2, yend = Pop2, color = site2), size = 21.25) + #colored boxes for Y-axis labels
+  geom_segment(data = ofFst, aes(x = Pop, xend = Pop, y = 0.2, yend = 0.475, color = site), size = 41) + #colored boxes for X-axis labels
+  scale_color_manual(values = ofavKColPal[c(1,3,2)], guide = NULL) +
+  scale_fill_gradient(low = "white", high = "#EA526F", limit = c(0, 0.24), space = "Lab", name = expression(paste(italic("F")[ST])), na.value = NA,  guide = "colourbar") +
+
+  geom_text(data = ofFst %>% filter(Fst != 0), aes(Pop, Pop2, label = Fst), color = "black", size = 3.5, fontface = "bold") +
+  guides(fill = guide_colorbar(barwidth = 7.5, barheight = 0.75, title.position = "top", title.hjust = 0.5, direction = "horizontal", ticks.colour = "black", frame.colour = "black")) +
+  scale_y_discrete(position = "left", limits = rev(levels(ofFst$Pop2))) +
+  scale_x_discrete(limits = levels(ofFst$Pop2)[c(1:3)]) +
+  coord_cartesian(xlim = c(1, 3), ylim = c(1, 3), clip = "off") +
+  theme_minimal()
+
+ofFstHeatmap = ofFstHeatmapA + theme(
+  axis.text.x = element_text(vjust = 3.5, size = 10, hjust = 0.5, color = "black"),
+  axis.text.y = element_text(size = 10, color = "black", angle = 90, hjust = 0.5, vjust = -1.5),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  axis.ticks = element_blank(),
+  legend.title = element_text(size = 8, color = "black"),
+  legend.text = element_text(size = 8, color = "black"),
+  legend.position = c(0.6, 0.9),
+  plot.background = element_blank(),
+  panel.background = element_blank(),
+)
+
+ofFstHeatmap
+
+```
+
+<br>
+
+### Heterozygosity
+
+```{r, ofav het data}
+ofavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005"))
+
+ofavHetData = read.delim("../data/ofav/ofavHet.out", header = FALSE, sep = " ") %>% mutate(sample = ofavData$sample)  %>% rename("Het" = "V2") %>% left_join(ofavPcangsd) %>% select(sample, Het, cluster)
+  
+ofavHet = ofavData %>% left_join(ofavHetData)
+
+```
+
+
+```{r, ofav het AOV}
+ofavHetAOV = welch_anova_test(ofavHet, Het ~ cluster)
+
+ofavHetPH = games_howell_test(ofavHet, Het ~ cluster)
+
+ofavHetPH$p.adj
+
+ofavComps = paste(ofavHetPH$group1,"-",ofavHetPH$group2, sep ="")
+ofavPs = ofavHetPH$p.adj
+
+ofMultComp = ofavPs < .05
+names(ofMultComp) = ofavComps
+ofLet = multcompLetters(ofMultComp)
+ofLetters = ofLet$Letters %>% as.data.frame()
+  
+ofavHetLetters = data.frame(x = factor(rownames(ofLetters)), y = 0.0024,  grp = ofLetters$.)
+
+ofavFST = read.delim("../data/ofav/ofavKFst.out")
+ofavFST$y = c(0.0025, 0.0031, 0.0028)
+```
+
+
+
+```{r, ofav het plots}
+ofavHetPlot = ggplot(data = ofavHet, aes(x = cluster, y = Het)) +
+  geom_violin(aes(fill = cluster, group = cluster), adjust = 1, linewidth = 0.4, color = "black", alpha = 1, trim = FALSE, scale = "area", width = 1) +
+  geom_beeswarm(aes(fill = cluster), shape = 21, cex = 0.5) +
+  geom_boxplot(aes(fill = cluster, group = cluster), width = 0.2, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.4, alpha = 0.5) +  xlab("Lineage") +
+  geom_text(data = ofavHetLetters, aes(x = x, y = y, label = grp), size = 4) +
+   annotate(geom = "text", x = 2.85, y = 0, label = bquote(italic("F")~" = "~.(ofavHetAOV$statistic)*"; "~italic("p")~" =  "~.(ofavHetAOV$p)), size = 3) +
+  geom_segment(data = ofavFST, aes(y = y, x = pop1, xend = pop2)) +
+  annotate(geom = "text", x = 1.5, y = 0.0026, label = bquote(italic("F")["ST"]~" = "~.(round(ofavFST$weightedFst[1], 3)))) +
+  annotate(geom = "text", x = 2, y = 0.0032, label = bquote(italic("F")["ST"]~" = "~.(round(ofavFST$weightedFst[3], 3)))) +
+  annotate(geom = "text", x = 2.5, y = 0.0029, label = bquote(italic("F")["ST"]~" = "~.(round(ofavFST$weightedFst[2], 3)))) +
+  scale_fill_discrete(type = ofavKColPal[c(1,3,2)], name = "Lineage") +
+  xlab("Lineage") +
+  ylab("Heterozygosity") +
+  scale_y_continuous(breaks = seq(0, 0.0035, 0.0005)) +
+  coord_cartesian(expand = TRUE, xlim = c(0.85, 3.15), ylim = c(0, 0.0032)) +
+  theme_bw() + 
+  violinTheme +
+  theme(panel.border = element_rect(linewidth = 1),
+          axis.ticks.y = element_line(color = "black"))
+
+ofavHetPlot
+
+```
+
+<br>
+
+### Nucleotide diversity plot
+
+```{r, of pi}
+ofavNpgList = list(read_tsv("../data/ofav/Ofav_Deep1.thetas.idx.pestPG") %>% mutate(lineage = "Of_Deep1"),
+               read_tsv("../data/ofav/Ofav_Deep2.thetas.idx.pestPG") %>% mutate(lineage = "Of_Deep2"),
+               read_tsv("../data/ofav/Ofav_Shallow.thetas.idx.pestPG") %>% mutate(lineage = "Of_Shallow"))
+
+
+ofavPiAll = purrr::reduce(ofavNpgList, rbind) %>% 
+  dplyr::group_by(lineage) %>%
+  filter(tP != 0) %>%
+  mutate(tPps = tP/nSites) %>%
+  dplyr::summarize(tPps = mean(tPps))
+
+ofavPiAll$Ne = (ofavPiAll$tPps)/(4*2e-8)
+ofavPiAll
+
+ofavPiAll$lineage = factor(ofavPiAll$lineage)
+
+```
+
+
+```{r, nuvDiv plot}
+ofavNuclDivPlot = ggplot(ofavPiAll, aes(x = lineage, y = tPps, fill = lineage, group = lineage)) +
+  geom_bar(position = position_dodge2(preserve = "single"), stat = "identity", color = "black") +
+  scale_fill_manual(values = ofavKColPal[c(1,3,2)]) +
+  geom_text(position = position_dodge2(preserve = "single", width = 0.9), aes(y = tPps-.0015, label= scales::comma(round(Ne,0)), hjust = 0, fontface = "bold"), angle = 90, color = "black", ) +
+  labs(x = "Lineage", y = bquote("Nucleotide diversity ("*pi*")")) + 
+  theme_bw() +
+  violinTheme +
+  theme(axis.text.x = ggtext::element_markdown())
+  
+ofavNuclDivPlot
+
+```
+
+<br>
+
 ## Symbiodiniaceae
 ***
 
 ```{r, ofav sym}
-ofavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!Sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005")) %>% dplyr::select("sample" = Sample, "site" = bank, "depth" = depthZone)
+ofavData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005")) %>% dplyr::select("sample" = sample, "site" = bank, "depth" = depthZone)
 
 ofavZoox = read.delim("../data/ofav/ofavZooxReads", header = FALSE, check.names = FALSE)
 
@@ -2268,14 +2787,49 @@ ofavSym = ofavSym %>% left_join(ofavAdmixOrd) %>% relocate(ord,.after = depth) %
 ```
 
 
+
 ```{r, ofav sym permanova}
+ofavZooxPermData = ofavData %>% left_join(ofavZooxMaps) %>% left_join(ofavPcangsdITS) %>% relocate(cluster, .after = depth)
+
+ofavZooxPermData$depth = factor(ofavZooxPermData$depth)
+ofavZooxPermData$depth = factor(ofavZooxPermData$depth, levels = levels(ofavZooxPermData$depth)[c(2, 1)])
+
+ofavZooxPermData$site = factor(ofavZooxPermData$site)
+ofavZooxPermData$site = factor(ofavZooxPermData$site, levels = levels(ofavZooxPermData$site)[c(2, 1)])
+
+head(ofavZooxPermData)
+
+
 set.seed(694)
 
-ofavSymPerm = adonis2(decostand(ofavSym[, c(6:((ncol(ofavSym))))], "normalize") ~ site*depth*cluster, data = ofavSym, permutations = 9999, method = "bray")
+
+ofavSymPerm = adonis2(decostand(ofavZooxPermData[ c(5:((ncol(ofavZooxPermData))))], "normalize") ~ depth * site, data = ofavZooxPermData, permutations = 9999, method = "bray", sqrt.dist = TRUE, by = "terms")
 
 ofavSymPerm
 
 ```
+
+<br>
+
+*O. faveolata* lineage  vs Symbiodiniaceae B-C distance
+
+```{r, procrustes its2 snps}
+ofavZooxDist = ofavZooxPermData[ c(5:ncol(ofavZooxPermData))] %>% decostand("normalize") %>% vegdist(method = "bray")
+
+ofavZooxPCoA = cmdscale(ofavZooxDist, eig = TRUE, x.ret = TRUE)
+
+ofavAdmixDist = ofavAdmixK2[c(5:ncol(ofavAdmixK2))] %>% vegdist(method = "euclidean")
+
+ofavAdmixPCoA = cmdscale(ofavAdmixDist, eig = TRUE, x.ret = TRUE)
+
+set.seed(981) 
+ofavProcrustes = protest(X = ofavAdmixPCoA, Y = ofavZooxPCoA , permutations = 9999)
+
+ofavProcrustes
+
+```
+
+<br>
 
 ```{r, ofav sym 2}
 ofavSym$depth = factor(ofavSym$depth)
@@ -2354,18 +2908,21 @@ ofavZooxPlot
 
 ```{r, all ofav plots}
 ofavPlot1 = ofavStructure + inset_element(ofavImg, -0.1, 0.7, 0.3, 1, align_to = "full", ignore_tag = TRUE)
-ofavPlot2 = (ofavPcaPlots + ofavLineageViolin) + plot_layout(guides = "collect")
-ofavPlot3 = ofavAdmixPlot + ofavZooxPlot
+ofavPlot2 = (ofavPcaPlots) + plot_layout(guides = "collect")
+ofavPlot3 = (ofavLineageViolin + theme(axis.text.y = element_text(margin = ggplot2::margin(r = -15, unit = "pt")))) + ofavHetPlot + ofavNuclDivPlot 
+ofavPlot4 = ofavAdmixPlot + ofavZooxPlot
 
-ofavPlots =  ofavPlot1 + ofavPlot2 + ofavPlot3 +
-  plot_layout(heights = c(2,1,1)) +
+ofavPlots =  ofavPlot1 + ofavPlot2 + ofavPlot3 + ofavPlot4 +
+  plot_layout(heights = c(2,1,1,1)) +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         legend.spacing = unit(-5, "pt"),
         legend.key = element_blank(),
         legend.background = element_blank())
 
-ggsave("../figures/figure4.png", plot = ofavPlots, height = 11, width = 12, units = "in", dpi = 300)
+ggsave("../figures/figure4.png", plot = ofavPlots, height = 14, width = 12, units = "in", dpi = 300)
+
+ggsave("../figures/figure4.svg", plot = ofavPlots, height = 14, width = 12, units = "in", dpi = 300)
 
 ```
 
@@ -2379,10 +2936,10 @@ ggsave("../figures/figure4.png", plot = ofavPlots, height = 11, width = 12, unit
 ***
 
 ```{r, xesto dend no clones, warning=FALSE, message=FALSE}
-xestoBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!Sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129"))# list of bams files and their populations (tech reps removed)
+xestoBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129"))# list of bams files and their populations (tech reps removed)
 
-xestoBams$Sample <- gsub("\\.[1-3]*$", "", xestoBams$Sample)
-xestoBams = xestoBams %>% dplyr::mutate(sample = Sample) %>% dplyr::select(-Sample) %>% dplyr::relocate(sample)
+xestoBams$sample <- gsub("\\.[1-3]*$", "", xestoBams$sample)
+xestoBams = xestoBams %>% dplyr::mutate(sample = sample) %>% dplyr::select(-sample) %>% dplyr::relocate(sample)
 
 xestoBams$bank = factor(xestoBams$bank)
 xestoBams$bank = factor(xestoBams$bank, levels = levels(xestoBams$bank)[c(5, 2, 1, 3, 4)])
@@ -2502,7 +3059,7 @@ xestoStructure
 ***
 
 ```{r}
-xestoData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!Sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129"))
+xestoData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129"))
 
 xestoData$depthZone = factor(xestoData$depthZone)
 xestoData$depthZone = factor(xestoData$depthZone, levels(xestoData$depthZone)[c(2,1)])
@@ -2549,7 +3106,7 @@ xestoPcaEig = eigen(xestoCov)
 xestoPcaVar = xestoPcaEig$values/sum(xestoPcaEig$values)*100
 head(xestoPcaVar)
 
-xestoPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!Sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129")) %>% dplyr::select("sample" = Sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
+xestoPcangsd = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129")) %>% dplyr::select("sample" = sample, "bank" = bank, "depth" = depthZone, "depthm" = depthM)
 
 xestoPcangsd$sitedepth = as.factor(paste(xestoPcangsd$bank, xestoPcangsd$depth, sep = " "))
 
@@ -2577,8 +3134,9 @@ xestoPcangsd$cluster = factor(xestoPcangsd$cluster, levels = levels(xestoPcangsd
 
 
 xestoBamsClusters = xestoPcangsd %>% dplyr::select(sample, cluster) %>% dplyr::arrange(sample) 
-xestoBamsSamples = read.delim("../data/xesto/bamsNoClones", header = FALSE)
-xestoBamsClusters$sample = xestoBamsSamples$V1
+
+xestoBamssamples = read.delim("../data/xesto/bamsNoClones", header = FALSE)
+xestoBamsClusters$sample = xestoBamssamples$V1
 
 # bamsClusters = as.data.frame(bamsClusters)
 
@@ -2607,8 +3165,10 @@ xestoPcaPlot12SA = ggplot() +
   scale_shape_manual(values = c(21, 23), name = "Depth Zone") +
   scale_fill_manual(values = gomPal, name = "Site") +
   scale_color_manual(values = gomPal, name = "Site") +
-  labs(x = paste0("PC 1 (", format(round(xestoPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(xestoPcaVar[2], 1), nsmall = 1), " %)")) +
+  labs(x = paste0("PC 1 (", format(round(xestoPcaVar[1], 1), nsmall = 1)," %)"), y = NULL) +
   guides(shape = guide_legend(override.aes = list(size = 4, stroke = 0.25, alpha = NA), order = 2, ncol = 1), fill = guide_legend(override.aes = list(shape = 22, size = 4, fill = gomPal[c(1,2,3,4,5)], alpha = NA), order = 1, ncol = 1)) +
+  annotate(geom = "text", x = -0.1205, y = -0.017, label = paste0("PC 2 (", format(round(xestoPcaVar[2], 1), nsmall = 1), " %)"), angle = 90, size = 3.65) +
+  coord_cartesian(xlim = c(-0.1, 0.12), clip = "off") +
   theme_bw()
 
 xestoPcaPlot12S = xestoPcaPlot12SA +
@@ -2626,6 +3186,7 @@ xestoPcaPlot12LA = ggplot() +
   scale_fill_manual(values = xestoKColPal, name = "Lineage") +
   labs(x = paste0("PC 1 (", format(round(xestoPcaVar[1], 1), nsmall = 1)," %)"), y = paste0("PC 2 (", format(round(xestoPcaVar[2], 1), nsmall = 1), " %)")) +
   guides(shape = "none", fill = guide_legend(override.aes = list(shape = 22, size = 4, alpha = NA), order = 1, ncol = 1))+
+  coord_cartesian(xlim = c(-0.1, 0.12), clip = "off") +
   theme_bw()
 
 xestoPcaPlot12L = xestoPcaPlot12LA +
@@ -2726,23 +3287,217 @@ xestoDF = xestoDepthAov$statistic[[1]]
 
 xestoDepthPH = games_howell_test(depthm ~ cluster, data = xestoPcangsd, conf.level = 0.95) %>% as.data.frame()
 
+xestoDepthComps = paste(xestoDepthPH$group1,"-",xestoDepthPH$group2, sep ="")
+# xestoComps = c("D1-D2", "D1-D3", "D1-D4", "D1-S1", "D1-S2", "D1-A",)
+xestoDepthPs = xestoDepthPH$p.adj
+
+xmDepthMultComp = xestoDepthPs < .05
+names(xmDepthMultComp) = xestoDepthComps
+xmDepthLet = multcompLetters(xmDepthMultComp)
+xmDepthLetters = xmDepthLet$Letters %>% as.data.frame()
+
+  
+xestoDepthLetters = data.frame(x = factor(rownames(xmDepthLetters)), y = 5,  grp = xmDepthLetters$.)
+
 xestoLineageViolinA = ggplot(data = xestoPcangsd, aes(x = cluster, y = depthm)) +
   annotate(geom = "rect", xmin = -Inf, xmax = Inf, ymin = 30, ymax = Inf,  fill = "black", alpha = 0.10, color = NA) +
   geom_violin(aes(fill = cluster),adjust = 1, linewidth = 0, color = "black", alpha = 0.75, width = 0.7, trim = F, scale = "width") +
     geom_beeswarm(aes(fill = cluster), shape = 21, size = 2, cex = 1.5, alpha = 0.5) +
   geom_violin(adjust = 1, linewidth = 0.4, color = "black", alpha = 1, width = 0.7, trim = F, fill = NA, scale = "width") +
   geom_boxplot(width = 0.2, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.6, alpha = 0.5) +
+  geom_segment(data = ticks[c(1:13),], aes(x = x, xend = xend, y = y)) +
   annotate(geom = "text", x = 2.75, y =65, label = bquote(italic("F")~" = "~.(xestoDF)*"; "~italic("p")~" < 0.001"), size = 3) +
+  annotate(geom = "text", x = xestoDepthLetters$x, y = xestoDepthLetters$y, label = xestoDepthLetters$grp) +
   scale_fill_discrete(type = xestoKColPal, name = "Lineage") +
   scale_color_discrete(type = xestoKColPal, name = "Lineage") +
   xlab("Lineage") +
   ylab("Depth (m)") +
   scale_y_reverse(breaks = seq(5, 90, 5)) +
+  coord_cartesian(xlim = c(0.75, 7.25), clip = "off") +
   theme_bw()
 
 xestoLineageViolin = xestoLineageViolinA + violinTheme + theme(axis.text.x = element_text(color = "black", size = 10, angle = 45, hjust = 0.9))
 
 xestoLineageViolin
+
+```
+
+<br>
+
+### Lineage differentiation
+
+Measuring with global weighted FST calculated from SFS
+
+First prepare and sort FST for plotting
+
+```{r}
+xm.pops = c("Xm_Deep1", "Xm_Deep2", "Xm_Deep3", "Xm_Deep4", "Xm_Shal1", "Xm_Shal2") 
+
+# reads in fst 
+xmFstMa1 <- read.delim("../data/xesto/xestoKFst.out") %>% dplyr::select(-fst) %>% df_to_pw_mat(., "pop1", "pop2", "weightedFst")
+
+colnames(xmFstMa1) = xm.pops
+rownames(xmFstMa1) = xm.pops
+xmFstMa = xmFstMa1
+
+upperTriangle(xmFstMa, byrow = TRUE) <- lowerTriangle(xmFstMa)
+xmFstMa <- xmFstMa[,xm.pops] %>%
+  .[xm.pops,]
+xmFstMa[lower.tri(xmFstMa)] <- NA
+xmFstMa <- as.data.frame(xmFstMa)
+
+# rearrange and reformat matrix
+xmFstMa$Pop = factor(row.names(xmFstMa), levels = unique(xm.pops))
+
+
+
+# melt matrix data (turn from matrix into long dataframe)
+xmFst = melt(xmFstMa, id.vars = "Pop", value.name = "Fst", variable.name = "Pop2", na.rm = FALSE)
+
+xmFst$Fst = round(xmFst$Fst, 3)
+
+xmFst$site = xmFst$Pop
+xmFst$site = factor(xmFst$site)
+
+xmFst$site2 = xmFst$Pop2
+
+```
+
+Construct a heatmap of FST values
+
+```{r, fstPlot}
+xmFstHeatmapA = ggplot(data = xmFst %>% filter(Fst != 0), aes(Pop, Pop2, fill = as.numeric(as.character(Fst)))) +
+  geom_tile(color = "white") +
+  geom_segment(data = xmFst, aes(x = 0.475, xend = 0.25, y = Pop2, yend = Pop2, color = site2), size = 11.5) + #colored boxes for Y-axis labels
+  geom_segment(data = xmFst, aes(x = Pop, xend = Pop, y = 0, yend = 0.475, color = site), size = 22.5) + #colored boxes for X-axis labels
+  scale_color_manual(values = xestoKColPal, guide = NULL) +
+  scale_fill_gradient(low = "white", high = "#EA526F", limit = c(0, 0.165), space = "Lab", name = expression(paste(italic("F")[ST])), na.value = NA,  guide = "colourbar") +
+  geom_text(data = xmFst %>% filter(Fst != 0), aes(Pop, Pop2, label = Fst), color = "black", size = 3.5, fontface = "bold") +
+  guides(fill = guide_colorbar(barwidth = 7.5, barheight = 0.75, title.position = "top", title.hjust = 0.5, direction = "horizontal", ticks.colour = "black", frame.colour = "black")) +
+  scale_y_discrete(position = "left", limits = rev(levels(xmFst$Pop2))) +
+  scale_x_discrete(limits = levels(xmFst$Pop2)[c(1:6)]) +
+  coord_cartesian(xlim = c(1, 6), ylim = c(1, 6), clip = "off") +
+  theme_minimal()
+
+xmFstHeatmap = xmFstHeatmapA + theme(
+  axis.text.x = element_text(vjust = 13, size = 8, hjust = 0.5, color = "black"),
+  axis.text.y = element_text(size = 5, color = "black", angle = 90, hjust = 0.5, vjust = -5),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  axis.ticks = element_blank(),
+  legend.title = element_text(size = 8, color = "black"),
+  legend.text = element_text(size = 8, color = "black"),
+  legend.position = c(0.6, 0.9),
+  plot.background = element_blank(),
+  panel.background = element_blank(),
+)
+
+xmFstHeatmap
+
+```
+
+<br>
+
+### Heterozygosity
+
+```{r, xesto het data}
+xestoData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129"))
+
+xestoHetData = read.delim("../data/xesto/xestoHet.out", header = FALSE, sep = " ") %>% mutate(sample = xestoData$sample)  %>% rename("Het" = "V2") %>% left_join(xestoPcangsd) %>% select(sample, Het, cluster)
+  
+xestoHet = xestoData %>% left_join(xestoHetData)
+
+```
+
+
+```{r, xesto het AOV}
+xestoHetAOV = welch_anova_test(xestoHet, Het ~ cluster)
+
+xestoHetAOV$p
+
+xestoHetPH = games_howell_test(xestoHet, Het ~ cluster)
+
+xestoHetPH
+
+xestoHetPH$p.adj
+
+xestoComps = paste(xestoHetPH$group1,"-",xestoHetPH$group2, sep ="")
+# xestoComps = c("D1-D2", "D1-D3", "D1-D4", "D1-S1", "D1-S2", "D1-A",)
+xestoPs = xestoHetPH$p.adj
+
+xmMultComp = xestoPs < .05
+names(xmMultComp) = xestoComps
+xmLet = multcompLetters(xmMultComp)
+xmLetters = xmLet$Letters %>% as.data.frame()
+  
+xestoHetLetters = data.frame(x = factor(rownames(xmLetters)), y = 0.001,  grp = xmLetters$.)
+
+```
+
+
+```{r, xesto het plots}
+xestoHetPlot = ggplot(data = xestoHet, aes(x = cluster, y = Het)) +
+  geom_violin(aes(fill = cluster, group = cluster), adjust = 1, linewidth = 0.4, color = "black", alpha = 1, trim = FALSE, scale = "area", width = 1) +
+  geom_beeswarm(aes(fill = cluster), shape = 21, cex = 0.5) +
+  geom_boxplot(aes(fill = cluster, group = cluster), width = 0.2, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.4, alpha = 0.5) +  xlab("Lineage") +
+  geom_text(data = xestoHetLetters, aes(x = x, y = y, label = grp), size = 4) +
+   annotate(geom = "text", x = 2.2, y = 0, label = bquote(italic("F")~" = "~.(xestoHetAOV$statistic)*"; "~italic("p")~" < 0.001"), size = 3) +
+  scale_fill_discrete(type = xestoKColPal, name = "Lineage") +
+  xlab("Lineage") +
+  ylab("Heterozygosity") +
+  scale_y_continuous(breaks = seq(0, 0.001, 0.0002)) +
+  coord_cartesian(expand = TRUE, xlim = c(0.85, 7.15), ylim = c(0, 0.001)) +
+  theme_bw() + 
+  violinTheme +
+  theme(axis.text.x = element_text(color = "black", size = 10, angle = 45, hjust = 0.9), axis.ticks.y = element_line(color = "black"))
+
+xestoHetPlot
+
+```
+
+<br>
+
+### Nucleotide diversity plot
+
+```{r, xesto pi}
+xestoNpgList = list(read_tsv("../data/xesto/Xm_Deep1.thetas.idx.pestPG") %>% mutate(lineage = "Xm_Deep1"),
+                  read_tsv("../data/xesto/Xm_Deep2.thetas.idx.pestPG") %>% mutate(lineage = "Xm_Deep2"),
+                  read_tsv("../data/xesto/Xm_Deep3.thetas.idx.pestPG") %>% mutate(lineage = "Xm_Deep3"),
+                  read_tsv("../data/xesto/Xm_Deep4.thetas.idx.pestPG") %>% mutate(lineage = "Xm_Deep4"),
+                  read_tsv("../data/xesto/Xm_Shal1.thetas.idx.pestPG") %>% mutate(lineage = "Xm_Shal1"),
+                  read_tsv("../data/xesto/Xm_Shal2.thetas.idx.pestPG") %>% mutate(lineage = "Xm_Shal2")
+               )
+
+
+xestoPiAll = purrr::reduce(xestoNpgList, rbind) %>% 
+  dplyr::group_by(lineage) %>%
+  filter(tP != 0) %>%
+  mutate(tPps = tP/nSites) %>%
+  dplyr::summarize(tPps = mean(tPps))
+
+xestoPiAll$Ne = (xestoPiAll$tPps)/(4*2e-8)
+xestoPiAll
+
+xestoPiAll$lineage = factor(xestoPiAll$lineage)
+
+```
+
+<br>
+
+```{r, xesto nuvDiv plot}
+xestoNuclDivPlot = ggplot(xestoPiAll, aes(x = lineage, y = tPps, fill = lineage, group = lineage)) +
+  geom_bar(position = position_dodge2(preserve = "single"), stat = "identity", color = "black") +
+  scale_fill_manual(values = xestoKColPal) +
+  geom_text(position = position_dodge2(preserve = "single", width = 0.9), aes(y = tPps-.0015, label= scales::comma(round(Ne,0)), hjust = 0, fontface = "bold"), angle = 90, color = "black", ) +
+  labs(x = "Lineage", y = bquote("Nucleotide diversity ("*pi*")")) + 
+  theme_bw() +
+  violinTheme +
+  theme(axis.text.x = element_text(color = "black", size = 10, angle = 45, hjust = 0.9))#,
+        #axis.text.x = ggtext::element_markdown())
+  
+xestoNuclDivPlot
 
 ```
 
@@ -2754,17 +3509,20 @@ xestoLineageViolin
 ```{r, all xesto plots}
 xestoPlot1 = xestoStructure + inset_element(xestoImg, -0.1, 0.7, 0.3, 1, align_to = "full", ignore_tag = TRUE)
 xestoPlot2 = xestoPcaPlots + plot_layout(guides = "collect")
-xestoPlot3 = xestoAdmixPlot + xestoLineageViolin
+xestoPlot3 = (xestoLineageViolin + theme(axis.text.y = element_text(margin = ggplot2::margin(r = -15, unit = "pt")))) + xestoHetPlot + xestoNuclDivPlot
+xestoPlot4 = xestoAdmixPlot + xmFstHeatmap
 
-xestoPlots =  xestoPlot1 + xestoPlot2 + xestoPlot3 +
-  plot_layout(heights = c(2,1,1)) +
+xestoPlots =  xestoPlot1 + xestoPlot2 + xestoPlot3 + xestoPlot4 +
+  plot_layout(heights = c(2,1,1,1)) +
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 18),
         legend.spacing = unit(-5, "pt"),
         legend.key = element_blank(),
         legend.background = element_blank())
 
-ggsave("../figures/figure5.png", plot = xestoPlots, height = 10, width = 11, units = "in", dpi = 300)
+ggsave("../figures/figure5.png", plot = xestoPlots, height = 14, width = 11, units = "in", dpi = 300)
+
+ggsave("../figures/figure5.svg", plot = xestoPlots, height = 14, width = 11, units = "in", dpi = 300)
 
 ```
  

@@ -1,4 +1,4 @@
-﻿Sample,oldName,ID,region,bank,site,date,species,latDD,longDD,depthFt,depthM,depthZone
+﻿sample,oldName,ID,region,bank,site,date,species,latDD,longDD,depthFt,depthM,depthZone
 MGM001,MGB001,MGM001,NWGOM,Geyer,GBMeso1,5/16/23,M. cavernosa,27.84753,-93.06443,158,48.2,Mesophotic
 MGM002.1,MGB002,MGM002,NWGOM,Geyer,GBMeso1,5/16/23,M. cavernosa,27.84753,-93.06443,155,47.2,Mesophotic
 MGM002.2,MGB002.2,MGM002,NWGOM,Geyer,GBMeso1,5/16/23,M. cavernosa,27.84753,-93.06443,155,47.2,Mesophotic

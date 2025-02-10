@@ -533,21 +533,11 @@ launcher_creator.py -j unique -n unique -q shortq7 -t 06:00:00 -e reckert2017@fa
 sbatch --mem=200GB unique.slurm
 ```
 
-```{bash, denovo construction xesto}
-cd ~/2bRAD/nwgom/xesto/filteredReads
-ls *.trim.un | perl -pe 's/^(.+)$/uniquerOne.pl $1 >$1\.uni/' > unique
-
-launcher_creator.py -j unique -n unique -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
-sbatch --mem=200GB unique.slurm
-```
-
 Checking there is a .uni for all samples
 ```{bash, uni check}
 cd ~/2bRAD/nwgom/sint/filteredReads
 ls -l *.uni | wc -l
 
-cd ~/2bRAD/nwgom/xesto/filteredReads
-ls -l *.uni | wc -l
 ```
 
 ### Collecting common tags (major alleles).
@@ -561,14 +551,6 @@ sbatch --mem=200GB allunique.slurm
 
 ```
 
-```{bash, }
-cd ~/2bRAD/nwgom/xesto/filteredReads
-echo 'mergeUniq.pl uni minInd=25 > all.uniq' > allunique
-
-launcher_creator.py -j allunique -n allunique -q shortq7 -t 06:00:00 -e reckert2017@fau.edu
-sbatch --mem=200GB allunique.slurm
-
-```
 
 Discarding tags that have more than 7 observations without reverse-complement
 ```{bash, discard tags}
@@ -2207,15 +2189,1307 @@ done
 
 ```
 
-##mcav Job #1727799955 X
-  # job id: 1727799934 X
-  
-##ofav Job #1727800045 X
-  # job id: 1727800165 X
+### Running ANGSD within lineages
 
-##sint Job #1727800078 X
-  # job id: 1727800242 X
+```{bash, sint angsd lineage}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+# created 'xxxBamsClusters' in R, based on Admixture analysis
+
+awk 'BEGIN { FS=" " } $2 == "Si_1" { print $1 }' sintBamsClusters >> Si_1Bams
+awk 'BEGIN { FS=" " } $2 == "Si_Deep" { print $1 }' sintBamsClusters >> Si_DeepBams
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -doGeno 8 -doPost 1 -doGlf 2"
+
+echo "angsd -b Si_1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 18 -out Si_1Snps
+angsd -b Si_DeepBams -GL 1 -P 1 $FILTERS $TODO -minInd 19 -out Si_DeepBamsSnps" > sintKSnps
+
+launcher_creator.py -j sintKSnps -n sintKSnps -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch sintKSnps.slurm
+
+```
+
+<br>
+
+```{bash, sint lineage snps}
+for file in *Si*Snps.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+srun awk '(++c[$0])==(ARGC-1)' *Snpssites > siSitesToDo
+
+cat siSitesToDo | wc -l
+
+```
+
+<br>
   
-#xesto Job #1727801257 X
-  # job id: 1727801431 
-  
+```{bash, mcav angsd lineage}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+# created 'xxxBamsClusters' in R, based on Admixture analysis
+
+awk 'BEGIN { FS=" " } $2 == "Mc_1" { print $1 }' mcavBamsClusters >> Mc_1Bams
+awk 'BEGIN { FS=" " } $2 == "Mc_Deep" { print $1 }' mcavBamsClusters >> Mc_DeepBams
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -doGeno 8 -doPost 1 -doGlf 2"
+
+echo "angsd -b Mc_1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 77 -out Mc_1Snps
+angsd -b Mc_DeepBams -GL 1 -P 1 $FILTERS $TODO -minInd 11 -out Mc_DeepBamsSnps" > mcavKSnps
+
+launcher_creator.py -j mcavKSnps -n mcavKSnps -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch --mem=200GB mcavKSnps.slurm
+
+```
+
+<br>
+
+```{bash, mcav lineage snps}
+for file in *Mc*Snps.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+srun awk '(++c[$0])==(ARGC-1)' *Snpssites > mcSitesToDo
+
+cat mcSitesToDo | wc -l
+
+```
+
+<br>
+
+```{bash, ofav angsd lineage}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+# created 'xxxBamsClusters' in R, based on Admixture analysis
+
+awk 'BEGIN { FS=" " } $2 == "Ofav_Deep1" { print $1 }' ofavBamsClusters >> Ofav_Deep1Bams
+awk 'BEGIN { FS=" " } $2 == "Ofav_Deep2" { print $1 }' ofavBamsClusters >> Ofav_Deep2Bams
+awk 'BEGIN { FS=" " } $2 == "Ofav_Shallow" { print $1 }' ofavBamsClusters >> Ofav_ShallowBams
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -doGeno 8 -doPost 1 -doGlf 2"
+
+echo "angsd -b Ofav_Deep1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 45 -out Ofav_Deep1BamsSnps
+angsd -b Ofav_Deep2Bams -GL 1 -P 1 $FILTERS $TODO -minInd 6 -out Ofav_Deep2BamsSnps
+angsd -b Ofav_ShallowBams -GL 1 -P 1 $FILTERS $TODO -minInd 36 -out Ofav_ShallowBamsSnps" > ofavKSnps
+
+launcher_creator.py -j ofavKSnps -n ofavKSnps -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch --mem=200GB ofavKSnps.slurm
+
+```
+
+<br>
+
+```{bash, ofav lineage snps}
+for file in Of*Snps.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+srun awk '(++c[$0])==(ARGC-1)' *Snpssites > ofSitesToDo
+
+cat ofSitesToDo | wc -l
+
+```
+
+
+```{bash, xesto angsd lineage}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+# created 'xxxBamsClusters' in R, based on Admixture analysis
+
+awk 'BEGIN { FS=" " } $2 == "Xm_Deep1" { print $1 }' xestoBamsClusters >> Xm_Deep1Bams
+awk 'BEGIN { FS=" " } $2 == "Xm_Deep2" { print $1 }' xestoBamsClusters >> Xm_Deep2Bams
+awk 'BEGIN { FS=" " } $2 == "Xm_Deep3" { print $1 }' xestoBamsClusters >> Xm_Deep3Bams
+awk 'BEGIN { FS=" " } $2 == "Xm_Deep4" { print $1 }' xestoBamsClusters >> Xm_Deep4Bams
+awk 'BEGIN { FS=" " } $2 == "Xm_Shal1" { print $1 }' xestoBamsClusters >> Xm_Shal1Bams
+awk 'BEGIN { FS=" " } $2 == "Xm_Shal2" { print $1 }' xestoBamsClusters >> Xm_Shal2Bams
+
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -snp_pval 1e-5 -minMaf 0.05"
+
+TODO="-doMajorMinor 1 -doMaf 1 -doGeno 8 -doPost 1 -doGlf 2"
+
+echo "angsd -b Xm_Deep1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 15 -out Xm_Deep1BamsSnps
+angsd -b Xm_Deep2Bams -GL 1 -P 1 $FILTERS $TODO -minInd 12 -out Xm_Deep2BamsSnps
+angsd -b Xm_Deep3Bams -GL 1 -P 1 $FILTERS $TODO -minInd 26 -out Xm_Deep3BamsSnps
+angsd -b Xm_Deep4Bams -GL 1 -P 1 $FILTERS $TODO -minInd 12 -out Xm_Deep4BamsSnps
+angsd -b Xm_Shal1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 17 -out Xm_Shal1BamsSnps
+angsd -b Xm_Shal2Bams -GL 1 -P 1 $FILTERS $TODO -minInd 30 -out Xm_Shal2BamsSnps" > xestoKSnps
+
+launcher_creator.py -j xestoKSnps -n xestoKSnps -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch --mem=200GB xestoKSnps.slurm
+
+```
+
+
+```{bash, xesto lineage snps}
+for file in Xm*Snps.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+srun awk '(++c[$0])==(ARGC-1)' *Snpssites > xmSitesToDo
+
+cat xmSitesToDo | wc -l
+```
+
+<br>
+
+## S I T E &nbsp; F R E Q U E N C Y &nbsp; S P E C T R A
+Running SFS calculations within lineage
+
+### **S. intersepta**
+
+```{bash, sint sfs}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+## No filters to distort allelic frequencies
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -maxHetFreq 0.5 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -dosnpstat 1 -doPost 2 -doGeno 11 -doGlf 2"
+
+echo "angsd -b Si_1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 18 -out Si_1SFS
+angsd -b Si_DeepBams -GL 1 -P 1 $FILTERS $TODO -minInd 19 -out Si_DeepSFS" > sintKsfs
+
+launcher_creator.py -j sintKsfs -n sintKsfs -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch sintKsfs.slurm
+
+
+for file in Si*SFS.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+```
+
+<br>
+
+Now, compile common sites from all lineages using awk
+
+```{bash, sint sfs2}
+srun awk '(++c[$0])==(ARGC-1)' *SFSsites > sintSFSsitesToDo
+
+cat sintSFSsitesToDo | wc -l
+
+#index sites for ANGSD and re-run ANGSD using ```-sites```
+angsd sites index sintSFSsitesToDo
+
+export GENOME_FASTA=~/2bRAD/nwgom/sint/mappedReads/sint_denovo_cc.fasta
+
+TODO="-doSaf 1 -ref $GENOME_FASTA -anc $GENOME_FASTA -doMaf 1 -doMajorMinor 4"
+
+echo "angsd -sites sintSFSsitesToDo -b Si_1Bams -GL 1 -P 1 $TODO -out sintSi_1SFS
+angsd -sites sintSFSsitesToDo -b Si_DeepBams -GL 1 -P 1 $TODO -out sintSi_DeepSFS
+" >sintSFS
+
+launcher_creator.py -j sintSFS -n sintSFS -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch sintSFS.slurm
+
+```
+
+<br>
+
+Once all jobs run:
+
+```{bash, sint sfs3}
+mkdir ../SFS
+mv sint*SFS* ../SFS
+
+cd ../SFS
+
+###-- 1d-SFS
+echo "realSFS sintSi_DeepSFS.saf.idx >sintSi_DeepSFS.sfs
+realSFS sintSi_1SFS.saf.idx >sintSi_1SFS.sfs" >realSFSsint
+
+launcher_creator.py -j realSFSsint -n realSFSsint -q shortq7 -t 06:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch realSFSsint.slurm
+
+###-- 2d-SFS
+echo "realSFS sintSi_Deepsfs.saf.idx sintSi_1sfs.saf.idx -P 20 > pD1S1.sfs ; realSFS fst index sintSi_Deepsfs.saf.idx sintSi_1sfs.saf.idx -sfs pD1S1.sfs -fstout pD1S1" >sint2dSFS
+
+launcher_creator.py -j sint2dSFS -n sint2dSFS -q shortq7 -t 06:00:00 -e $EMAIL -w 20 -N 1
+
+sbatch sint2dSFS.slurm
+
+```
+
+<br>
+
+Global Fst between lineages
+
+```{bash, sint fst}
+
+> sintKFst
+realSFS fst stats pD1S1.fst.idx >> sintKFst
+
+echo "D1
+">fstPops1
+
+echo "S1
+" >fstPops2
+
+paste fstPops1 fstPops2 sintKFst > sintKFst.o
+
+echo -e "pop1\tpop2\tfst\tweightedFst" | cat - sintKFst.o > sintKFst.out
+
+rm fstPops1 fstPops2 sintKFst sintKFst.o
+
+cat sintKFst.out
+
+```
+
+<br>
+
+### **M. cavernosa**
+
+```{bash, mcav sfs}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+## No filters to distort allelic frequencies
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -maxHetFreq 0.5 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -dosnpstat 1 -doPost 2 -doGeno 11 -doGlf 2"
+
+echo "angsd -b Mc_1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 77 -out Mc_1SFS
+angsd -b Mc_DeepBams -GL 1 -P 1 $FILTERS $TODO -minInd 11 -out Mc_DeepSFS" > mcavKsfs
+
+launcher_creator.py -j mcavKsfs -n mcavKsfs -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch mcavKsfs.slurm
+
+
+for file in Mc*SFS.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+```
+
+<br>
+
+Now, compile common sites from all lineages using awk
+
+```{bash, mcav sfs2}
+srun awk '(++c[$0])==(ARGC-1)' *SFSsites > mcavSFSsitesToDo
+
+cat mcavSFSsitesToDo | wc -l
+
+#index sites for ANGSD and re-run ANGSD using ```-sites```
+angsd sites index mcavSFSsitesToDo
+
+export GENOME_FASTA=~/bin/mcavGenome/mcavGenome.fa
+
+TODO="-doSaf 1 -ref $GENOME_FASTA -anc $GENOME_FASTA -doMaf 1 -doMajorMinor 4"
+
+echo "angsd -sites mcavSFSsitesToDo -b Mc_1Bams -GL 1 -P 1 $TODO -out mcavMc_1SFS
+angsd -sites mcavSFSsitesToDo -b Mc_DeepBams -GL 1 -P 1 $TODO -out mcavMc_DeepSFS" >mcavSFS
+
+launcher_creator.py -j mcavSFS -n mcavSFS -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch mcavSFS.slurm
+
+```
+
+<br>
+
+Once all jobs run:
+
+```{bash, mcav sfs3}
+mkdir ../SFS
+mv mcav*SFS* ../SFS
+
+cd ../SFS
+
+###-- 1d-SFS
+echo "realSFS mcavMc_DeepSFS.saf.idx >mcavMc_DeepSFS.sfs
+realSFS mcavMc_1SFS.saf.idx >mcavMc_1SFS.sfs" >realSFSmcav
+
+launcher_creator.py -j realSFSmcav -n realSFSmcav -q shortq7 -t 06:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch realSFSmcav.slurm
+
+
+###-- 2d-SFS
+echo "realSFS mcavMc_DeepSFS.saf.idx mcavMc_1SFS.saf.idx -P 20 > pD1S1.sfs ; realSFS fst index mcavMc_DeepSFS.saf.idx mcavMc_1SFS.saf.idx -sfs pD1S1.sfs -fstout pD1S1" >mcav2dSFS
+
+launcher_creator.py -j mcav2dSFS -n mcav2dSFS -q shortq7 -t 06:00:00 -e $EMAIL -w 20 -N 1
+
+sbatch mcav2dSFS.slurm
+
+```
+
+<br>
+
+
+Global Fst between lineages
+
+```{bash, mcav fst}
+> mcavKFst
+realSFS fst stats pD1S1.fst.idx >> mcavKFst
+
+echo "D1
+">fstPops1
+
+echo "S1
+" >fstPops2
+
+paste fstPops1 fstPops2 mcavKFst > mcavKFst.o
+
+echo -e "pop1\tpop2\tfst\tweightedFst" | cat - mcavKFst.o > mcavKFst.out
+
+rm fstPops1 fstPops2 mcavKFst mcavKFst.o
+
+cat mcavKFst.out
+
+```
+
+<br>
+
+### **O. faveolata**
+
+```{bash, ofav sfs}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+## No filters to distort allelic frequencies
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -maxHetFreq 0.5 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -dosnpstat 1 -doPost 2 -doGeno 11 -doGlf 2"
+
+echo "angsd -b Ofav_Deep1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 45 -out ofavOf_Deep1SFS
+angsd -b Ofav_Deep2Bams -GL 1 -P 1 $FILTERS $TODO -minInd 5 -out ofavOf_Deep2SFS
+angsd -b Ofav_ShallowBams -GL 1 -P 1 $FILTERS $TODO -minInd 36 -out ofavOf_ShallowSFS" > ofavKsfs
+
+launcher_creator.py -j ofavKsfs -n ofavKsfs -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch ofavKsfs.slurm
+
+for file in ofav*SFS.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+```
+
+<br>
+
+Now, compile common sites from all lineages using awk
+
+```{bash, ofav sfs2}
+srun awk '(++c[$0])==(ARGC-1)' ofav*sites > ofavSFSsitesToDo
+
+cat ofavSFSsitesToDo | wc -l
+
+#index sites for ANGSD and re-run ANGSD using ```-sites```
+angsd sites index ofavSFSsitesToDo
+
+export GENOME_FASTA=~/bin/ofavGenome/ofavGenome.fa
+
+TODO="-doSaf 1 -ref $GENOME_FASTA -anc $GENOME_FASTA -doMaf 1 -doMajorMinor 4"
+
+echo "angsd -sites ofavSFSsitesToDo -b Ofav_Deep1Bams -GL 1 -P 1 $TODO -out ofavOf_Deep1SFS
+angsd -sites ofavSFSsitesToDo -b Ofav_Deep2Bams -GL 1 -P 1 $TODO -out ofavOf_Deep2SFS
+angsd -sites ofavSFSsitesToDo -b Ofav_ShallowBams -GL 1 -P 1 $TODO -out ofavOf_ShalSFS" >ofavSFS
+
+launcher_creator.py -j ofavSFS -n ofavSFS -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch ofavSFS.slurm
+
+```
+
+<br>
+
+Once all jobs run:
+
+```{bash, ofav sfs3}
+mkdir ../SFS
+mv ofav*SFS* ../SFS
+
+cd ../SFS
+
+###-- 1d-SFS
+echo "realSFS ofavOf_Deep1SFS.saf.idx >ofavOf_Deep1SFS.sfs
+realSFS ofavOf_Deep2SFS.saf.idx >ofavOf_Deep2SFS.sfs 
+realSFS ofavOf_ShalSFS.saf.idx >ofavOf_ShalSFS.sfs" >realSFSofav
+
+launcher_creator.py -j realSFSofav -n realSFSofav -q shortq7 -t 06:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch realSFSofav.slurm
+
+
+###-- 2d-SFS
+echo "realSFS ofavOf_Deep1SFS.saf.idx ofavOf_Deep2SFS.saf.idx -P 20 > pD1D2.sfs ; realSFS fst index ofavOf_Deep1SFS.saf.idx ofavOf_Deep2SFS.saf.idx -sfs pD1D2.sfs -fstout pD1D2
+
+realSFS ofavOf_Deep1SFS.saf.idx ofavOf_ShalSFS.saf.idx -P 20 > pD1S1.sfs ; realSFS fst index ofavOf_Deep1SFS.saf.idx ofavOf_ShalSFS.saf.idx -sfs pD1S1.sfs -fstout pD1S1
+
+realSFS ofavOf_Deep2SFS.saf.idx ofavOf_ShalSFS.saf.idx -P 20 > pD2S1.sfs ; realSFS fst index ofavOf_Deep2SFS.saf.idx ofavOf_ShalSFS.saf.idx -sfs pD2S1.sfs -fstout pD2S1" >ofav2dSFS
+
+launcher_creator.py -j ofav2dSFS -n ofav2dSFS -q shortq7 -t 06:00:00 -e $EMAIL -w 20 -N 1
+
+sbatch ofav2dSFS.slurm
+
+```
+
+<br>
+
+Global Fst between lineages
+
+```{bash, ofav fst}
+> ofavKFst
+realSFS fst stats pD1D2.fst.idx >> ofavKFst
+realSFS fst stats pD1S1.fst.idx >> ofavKFst
+realSFS fst stats pD2S1.fst.idx >> ofavKFst
+
+echo "D1
+D1
+D2
+">fstPops1
+
+echo "D2
+S1
+S1
+" >fstPops2
+
+paste fstPops1 fstPops2 ofavKFst > ofavKFst.o
+
+echo -e "pop1\tpop2\tfst\tweightedFst" | cat - ofavKFst.o > ofavKFst.out
+
+rm fstPops1 fstPops2 ofavKFst ofavKFst.o
+
+cat ofavKFst.out
+
+```
+
+<br>
+
+```{bash, xesto sfs}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+## No filters to distort allelic frequencies
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -maxHetFreq 0.5"
+
+TODO="-doMajorMinor 1 -doMaf 1 -dosnpstat 1 -doPost 2 -doGeno 11 -doGlf 2"
+
+echo "angsd -b Xm_Deep1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 15 -out xestoXm_Deep1SFS
+angsd -b Xm_Deep2Bams -GL 1 -P 1 $FILTERS $TODO -minInd 12 -out xestoXm_Deep2SFS
+angsd -b Xm_Deep3Bams -GL 1 -P 1 $FILTERS $TODO -minInd 26 -out xestoXm_Deep3SFS
+angsd -b Xm_Deep4Bams -GL 1 -P 1 $FILTERS $TODO -minInd 12 -out xestoXm_Deep4SFS
+angsd -b Xm_Shal1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 17 -out xestoXm_Shal1SFS
+angsd -b Xm_Shal2Bams -GL 1 -P 1 $FILTERS $TODO -minInd 30 -out xestoXm_Shal2SFS" > xestoKsfs
+
+launcher_creator.py -j xestoKsfs -n xestoKsfs -q shortq7 -t 06:00:00 -e $EMAIL -w 2 -N 1
+
+sbatch xestoKsfs.slurm
+
+
+for file in xesto*SFS.geno.gz; do
+echo '#!/bin/bash' > ${file%%.*}.sh;
+echo "zcat $file | awk '{print \$1\"\t\"\$2}' > ${file%%.*}sites" >> ${file%%.*}.sh;
+sbatch -e ${file%%.*}.e%j -o ${file%%.*}.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL ${file%%.*}.sh;
+done
+
+```
+
+<br>
+
+Now, compile common sites from all lineages using awk
+
+```{bash, xesto sfs2}
+srun awk '(++c[$0])==(ARGC-1)' xesto*sites > xestoSFSsitesToDo
+
+cat xestoSFSsitesToDo | wc -l
+
+#index sites for ANGSD and re-run ANGSD using ```-sites```
+angsd sites index xestoSFSsitesToDo
+
+export GENOME_FASTA=~/bin/xestoGenome/odXesMuta1.1_alternate_haplotype.fna
+
+TODO="-doSaf 1 -ref $GENOME_FASTA -anc $GENOME_FASTA -doMaf 1 -doMajorMinor 4"
+
+echo "angsd -sites xestoSFSsitesToDo -b Xm_Deep1Bams -GL 1 -P 1 $TODO -out xestoXm_Deep1SFS
+angsd -sites xestoSFSsitesToDo -b Xm_Deep2Bams -GL 1 -P 1 $TODO -out xestoXm_Deep2SFS
+angsd -sites xestoSFSsitesToDo -b Xm_Deep3Bams -GL 1 -P 1 $TODO -out xestoXm_Deep3SFS
+angsd -sites xestoSFSsitesToDo -b Xm_Deep4Bams -GL 1 -P 1 $TODO -out xestoXm_Deep4SFS
+angsd -sites xestoSFSsitesToDo -b Xm_Shal1Bams -GL 1 -P 1 $TODO -out xestoXm_Shal1SFS
+angsd -sites xestoSFSsitesToDo -b Xm_Shal2Bams -GL 1 -P 1 $TODO -out xestoXm_Shal2SFS" >xestoSFS
+
+launcher_creator.py -j xestoSFS -n xestoSFS -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch --mem=200GB xestoSFS.slurm
+
+```
+
+<br>
+
+Once all jobs run:
+
+```{bash, xesto sfs3}
+mkdir ../SFS
+mv xesto*SFS* ../SFS
+
+cd ../SFS
+
+###-- 1d-SFS
+echo "realSFS xestoXm_Deep1SFS.saf.idx >xestoXm_Deep1.sfs
+realSFS xestoXm_Deep2SFS.saf.idx >xestoXm_Deep2.sfs 
+realSFS xestoXm_Deep3SFS.saf.idx >xestoXm_Deep3.sfs
+realSFS xestoXm_Deep4SFS.saf.idx >xestoXm_Deep4.sfs
+realSFS xestoXm_Shal1SFS.saf.idx >xestoXm_Shal1.sfs
+realSFS xestoXm_Shal2SFS.saf.idx >xestoXm_Shal2.sfs" >realSFSxesto
+
+launcher_creator.py -j realSFSxesto -n realSFSxesto -q shortq7 -t 06:00:00 -e $EMAIL -w 4 -N 1
+sbatch realSFSxesto.slurm
+
+
+###-- 2d-SFS
+echo "realSFS xestoXm_Deep1SFS.saf.idx xestoXm_Deep2SFS.saf.idx -P 20 > pD1D2.sfs ; realSFS fst index xestoXm_Deep1SFS.saf.idx xestoXm_Deep2SFS.saf.idx -sfs pD1D2.sfs -fstout pD1D2
+
+realSFS xestoXm_Deep1SFS.saf.idx xestoXm_Deep3SFS.saf.idx -P 20 > pD1D3.sfs ; realSFS fst index xestoXm_Deep1SFS.saf.idx xestoXm_Deep3SFS.saf.idx -sfs pD1D3.sfs -fstout pD1D3
+
+realSFS xestoXm_Deep1SFS.saf.idx xestoXm_Deep4SFS.saf.idx -P 20 > pD1D4.sfs ; realSFS fst index xestoXm_Deep1SFS.saf.idx xestoXm_Deep4SFS.saf.idx -sfs pD1D4.sfs -fstout pD1D4
+
+realSFS xestoXm_Deep1SFS.saf.idx xestoXm_Shal1SFS.saf.idx -P 20 > pD1S1.sfs ; realSFS fst index xestoXm_Deep1SFS.saf.idx xestoXm_Shal1SFS.saf.idx -sfs pD1S1.sfs -fstout pD1S1
+
+realSFS xestoXm_Deep1SFS.saf.idx xestoXm_Shal2SFS.saf.idx -P 20 > pD1S2.sfs ; realSFS fst index xestoXm_Deep1SFS.saf.idx xestoXm_Shal2SFS.saf.idx -sfs pD1S2.sfs -fstout pD1S2
+
+realSFS xestoXm_Deep2SFS.saf.idx xestoXm_Deep3SFS.saf.idx -P 20 > pD2D3.sfs ; realSFS fst index xestoXm_Deep2SFS.saf.idx xestoXm_Deep3SFS.saf.idx -sfs pD2D3.sfs -fstout pD2D3
+
+realSFS xestoXm_Deep2SFS.saf.idx xestoXm_Deep4SFS.saf.idx -P 20 > pD2D4.sfs ; realSFS fst index xestoXm_Deep2SFS.saf.idx xestoXm_Deep4SFS.saf.idx -sfs pD2D4.sfs -fstout pD2D4
+
+realSFS xestoXm_Deep2SFS.saf.idx xestoXm_Shal1SFS.saf.idx -P 20 > pD2S1.sfs ; realSFS fst index xestoXm_Deep2SFS.saf.idx xestoXm_Shal1SFS.saf.idx -sfs pD2S1.sfs -fstout pD2S1
+
+realSFS xestoXm_Deep2SFS.saf.idx xestoXm_Shal2SFS.saf.idx -P 20 > pD2S2.sfs ; realSFS fst index xestoXm_Deep2SFS.saf.idx xestoXm_Shal2SFS.saf.idx -sfs pD2S2.sfs -fstout pD2S2
+
+realSFS xestoXm_Deep3SFS.saf.idx xestoXm_Deep4SFS.saf.idx -P 20 > pD3D4.sfs ; realSFS fst index xestoXm_Deep3SFS.saf.idx xestoXm_Deep4SFS.saf.idx -sfs pD3D4.sfs -fstout pD3D4
+
+realSFS xestoXm_Deep3SFS.saf.idx xestoXm_Shal1SFS.saf.idx -P 20 > pD3S1.sfs ; realSFS fst index xestoXm_Deep3SFS.saf.idx xestoXm_Shal1SFS.saf.idx -sfs pD3S1.sfs -fstout pD3S1
+
+realSFS xestoXm_Deep3SFS.saf.idx xestoXm_Shal2SFS.saf.idx -P 20 > pD3S2.sfs ; realSFS fst index xestoXm_Deep3SFS.saf.idx xestoXm_Shal2SFS.saf.idx -sfs pD3S2.sfs -fstout pD3S2
+
+realSFS xestoXm_Deep4SFS.saf.idx xestoXm_Shal1SFS.saf.idx -P 20 > pD4S1.sfs ; realSFS fst index xestoXm_Deep4SFS.saf.idx xestoXm_Shal1SFS.saf.idx -sfs pD4S1.sfs -fstout pD4S1
+
+realSFS xestoXm_Deep4SFS.saf.idx xestoXm_Shal2SFS.saf.idx -P 20 > pD4S2.sfs ; realSFS fst index xestoXm_Deep4SFS.saf.idx xestoXm_Shal2SFS.saf.idx -sfs pD4S2.sfs -fstout pD4S2
+
+realSFS xestoXm_Shal1SFS.saf.idx xestoXm_Shal2SFS.saf.idx -P 20 > pS1S2.sfs ; realSFS fst index xestoXm_Shal1SFS.saf.idx xestoXm_Shal2SFS.saf.idx -sfs pS1S2.sfs -fstout pS1S2" >xesto2dSFS
+
+
+launcher_creator.py -j xesto2dSFS -n xesto2dSFS -q shortq7 -t 06:00:00 -e $EMAIL -w 20 -N 1
+
+sbatch xesto2dSFS.slurm
+
+```
+
+<br>
+
+Global Fst between lineages
+
+```{bash, xesto fst}
+> xestoKFst
+realSFS fst stats pD1D2.fst.idx >> xestoKFst
+realSFS fst stats pD1D3.fst.idx >> xestoKFst
+realSFS fst stats pD1D4.fst.idx >> xestoKFst
+realSFS fst stats pD1S1.fst.idx >> xestoKFst
+realSFS fst stats pD1S2.fst.idx >> xestoKFst
+realSFS fst stats pD2D3.fst.idx >> xestoKFst
+realSFS fst stats pD2D4.fst.idx >> xestoKFst
+realSFS fst stats pD2S1.fst.idx >> xestoKFst
+realSFS fst stats pD2S2.fst.idx >> xestoKFst
+realSFS fst stats pD3D4.fst.idx >> xestoKFst
+realSFS fst stats pD3S1.fst.idx >> xestoKFst
+realSFS fst stats pD3S2.fst.idx >> xestoKFst
+realSFS fst stats pD4S1.fst.idx >> xestoKFst
+realSFS fst stats pD4S2.fst.idx >> xestoKFst
+realSFS fst stats pS1S2.fst.idx >> xestoKFst
+
+echo "D1
+D1
+D1
+D1
+D1
+D2
+D2
+D2
+D2
+D3
+D3
+D3
+D4
+D4
+S1">fstPops1
+
+echo "D2
+D3
+D4
+S1
+S2
+D3
+D4
+S1
+S2
+D4
+S1
+S2
+S1
+S2
+S2" >fstPops2
+
+paste fstPops1 fstPops2 xestoKFst > xestoKFst.o
+
+echo -e "pop1\tpop2\tfst\tweightedFst" | cat - xestoKFst.o > xestoKFst.out
+
+rm fstPops1 fstPops2 xestoKFst xestoKFst.o
+
+cat xestoKFst.out
+
+```
+
+<br>
+
+## H E T E R O Z Y G O S I T Y 
+
+***
+Calculating Heterozygosity across all loci (variant//invariant) using ```ANGSD``` and ```R``` script from Misha Matz (https://github.com/z0on/2bRAD_denovo)
+
+### **S. intersepta**
+
+```{bash, sint het}
+cd ~/2bRAD/nwgom/sint/ANGSD
+
+mv ../SFS/sintSFSsitesToDo* .
+
+angsd sites index sintSFSsitesToDo
+
+FILTERS="-maxHetFreq 0.5 -uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -minInd 153 -setMinDepthInd 3"
+TODO="-makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 32 -doPost 1 -doGlf 2 -doCounts 1 -doMajorMinor 1 -dosnpstat 1 -doMaf 1"
+
+echo "angsd -sites sintSFSsitesToDo -b bamsNoClones -GL 1 -P 1 $TODO $FILTERS -out sintHet" >sintHet
+
+launcher_creator.py -j sintHet -n sintHet -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch --exclude=nodeeng002,nodeeng006,nodeeng001,nodeeng003 sintHet.slurm
+
+# after ANGSD runs:
+mkdir ../heterozygosity
+cp sintHet* ../heterozygosity/
+
+cd ../heterozygosity
+rm sintHet.e* sintHet.o*
+
+echo heterozygosity_beagle.R sintHet.beagle.gz >sintHet.sh
+
+launcher_creator.py -j sintHet.sh -n sintHet -q shortq7 -t 6:00:00 -e $EMAIL -N 1
+sbatch --mem=200GB sintHet.slurm
+
+# after job runs:
+tail -n 203 sintHet.e* > sintHet.out
+
+cat sintHet.out
+
+```
+
+<br>
+
+### **M. cavernosa**
+
+```{bash, mcav het}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+mv ../SFS/mcavSFSsitesToDo* .
+
+angsd sites index mcavSFSsitesToDo
+
+FILTERS="-maxHetFreq 0.5 -uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -minInd 127 -setMinDepthInd 3"
+TODO="-makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 32 -doPost 1 -doGlf 2 -doCounts 1 -doMajorMinor 1 -dosnpstat 1 -doMaf 1"
+
+echo "angsd -sites mcavSFSsitesToDo -b bamsNoClones -GL 1 -P 1 $TODO $FILTERS -out mcavHet" >mcavHet
+
+launcher_creator.py -j mcavHet -n mcavHet -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch--mem=200GB mcavHet.slurm
+
+
+# after ANGSD runs:
+mkdir ../heterozygosity
+cp mcavHet* ../heterozygosity/
+
+cd ../heterozygosity
+rm mcavHet.e* mcavHet.o*
+
+echo heterozygosity_beagle.R mcavHet.beagle.gz >mcavHet
+
+launcher_creator.py -j mcavHet -n mcavHet -q shortq7 -t 6:00:00 -e $EMAIL -N 1
+sbatch --mem=200GB mcavHet.slurm
+
+
+# after job runs:
+tail -n 169 mcavHet.e* > mcavHet.out
+
+cat mcavHet.out
+
+```
+
+<br>
+
+### **O. faveolata**
+
+```{bash, ofav het}
+cd ~/2bRAD/nwgom/ofav/ANGSD
+
+cp ../SFS/ofavSFSsitesToDo .
+
+angsd sites index ofavSFSsitesToDo
+
+FILTERS="-maxHetFreq 0.5 -uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -minInd 87 -setMinDepthInd 3"
+TODO="-makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 32 -doPost 1 -doGlf 2 -doCounts 1 -doMajorMinor 1 -dosnpstat 1 -doMaf 1"
+
+echo "angsd -sites ofavSFSsitesToDo -b bamsNoClones -GL 1 -P 1 $TODO $FILTERS -out ofavHet" >ofavHet
+
+launcher_creator.py -j ofavHet -n ofavHet -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch --exclude=nodeeng002,nodeeng006 ofavHet.slurm
+
+
+# after ANGSD runs:
+mkdir ../heterozygosity
+cp ofavHet* ../heterozygosity/
+
+cd ../heterozygosity
+rm ofavHet.o* ofavHet.e*
+
+echo heterozygosity_beagle.R ofavHet.beagle.gz >ofavHet
+
+launcher_creator.py -j ofavHet -n ofavHet -q shortq7 -t 6:00:00 -e $EMAIL -N 1
+
+sbatch --exclude=nodeeng002,nodeeng006 --mem=200GB ofavHet.slurm
+
+
+# after job runs:
+tail -n 116 ofavHet.e* > ofavHet.out
+
+cat ofavHet.out
+
+```
+
+<br>
+
+### **X. muta**
+
+```{bash, xesto het}
+cd ~/2bRAD/nwgom/xesto/ANGSD
+
+mv ../SFS/xestoSFSsitesToDo* .
+
+angsd sites index xestoSFSsitesToDo
+
+FILTERS="-maxHetFreq 0.5 -uniqueOnly 1 -remove_bads 1 -skipTriallelic 1 -minMapQ 30 -minQ 35 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -minInd 147"
+
+TODO="-makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 32 -doPost 1 -doGlf 2 -doCounts 1 -doMajorMinor 1 -dosnpstat 1 -doMaf 1"
+
+echo "angsd -sites xestoSFSsitesToDo -b bamsNoClones -GL 1 -P 1 $TODO $FILTERS -out xestoHet" >xestoHet
+
+launcher_creator.py -j xestoHet -n xestoHet -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch --exclude=nodeeng002,nodeeng006 xestoHet.slurm
+
+
+# after ANGSD runs:
+mkdir ../heterozygosity
+cp xestoHet* ../heterozygosity/
+
+cd ../heterozygosity
+rm xestoHet.e* xestoHet.o*
+
+echo heterozygosity_beagle.R xestoHet.beagle.gz >xestoHet
+
+launcher_creator.py -j xestoHet -n xestoHet -q shortq7 -t 6:00:00 -e $EMAIL -N 1
+
+sbatch --mem=200GB xestoHet.slurm
+
+
+# after job runs:
+tail -n 197 xestoHet.e* > xestoHet.out
+
+cat xestoHet.out
+
+```
+
+<br>
+
+
+## N U C L E O T I D E &nbsp; D I V E R S I T Y
+
+***
+
+### **S. intersepta**
+
+```{bash, sint nd}
+cd ~/2bRAD/nwgom/sint/
+mkdir theta
+
+cd ANGSD
+
+GENOME_FASTA=~/2bRAD/nwgom/sint/mappedReads/sint_denovo_cc.fasta
+
+>kThetas
+
+for POP in Si_Deep Si_1; do
+echo "angsd -b ${POP}Bams -GL 1 -P 1 -sites sintSFSsitesToDo -anc $GENOME_FASTA -doSaf 1 -out ${POP}Out &&\
+realSFS ${POP}Out.saf.idx -fold 1 > ${POP}Out.sfs &&\
+realSFS saf2theta ${POP}Out.saf.idx -sfs ${POP}Out.sfs -outname ${POP} -fold 1 &&\
+thetaStat do_stat ${POP}.thetas.idx" >> kThetas
+done
+
+launcher_creator.py -j kThetas -n kThetas -q shortq7 -t 6:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch kThetas.slurm
+
+#after run is fisnished:
+mv *theta* ../theta
+
+```
+
+<br>
+
+### **M. cavernosa**
+
+```{bash, mcav nd}
+cd ~/2bRAD/nwgom/mcav/
+mkdir theta
+
+cd ANGSD
+
+GENOME_FASTA=~/bin/mcavGenome/mcavGenome.fa
+
+>kThetas
+
+for POP in Mc_Deep Mc_1; do
+echo "angsd -b ${POP}Bams -GL 1 -P 1 -sites mcavSFSsitesToDo -anc $GENOME_FASTA -doSaf 1 -out ${POP}Out &&\
+realSFS ${POP}Out.saf.idx -fold 1 > ${POP}Out.sfs &&\
+realSFS saf2theta ${POP}Out.saf.idx -sfs ${POP}Out.sfs -outname ${POP} -fold 1 &&\
+thetaStat do_stat ${POP}.thetas.idx" >> kThetas
+done
+
+launcher_creator.py -j kThetas -n kThetas -q shortq7 -t 6:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch kThetas.slurm
+
+#after run is fisnished:
+mv *theta* ../theta
+
+```
+
+<br>
+
+### **O. faveolata**
+
+```{bash, ofav nd}
+cd ~/2bRAD/nwgom/ofav/
+mkdir theta
+
+cd ANGSD
+
+GENOME_FASTA=~/bin/ofavGenome/ofavGenome.fa
+
+>kThetas
+
+for POP in Ofav_Deep1 Ofav_Deep2 Ofav_Shallow; do
+echo "angsd -b ${POP}Bams -GL 1 -P 1 -sites ofavSFSsitesToDo -anc $GENOME_FASTA -doSaf 1 -out ${POP}Out &&\
+realSFS ${POP}Out.saf.idx -fold 1 > ${POP}Out.sfs &&\
+realSFS saf2theta ${POP}Out.saf.idx -sfs ${POP}Out.sfs -outname ${POP} -fold 1 &&\
+thetaStat do_stat ${POP}.thetas.idx" >> kThetas
+done
+
+launcher_creator.py -j kThetas -n kThetas -q shortq7 -t 6:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch kThetas.slurm
+
+#after run is fisnished:
+mv *theta* ../theta
+
+```
+
+<br>
+
+### **X. muta**
+
+```{bash, xmuta nd}
+cd ~/2bRAD/nwgom/xesto/
+mkdir theta
+
+cd ANGSD
+
+GENOME_FASTA=~/bin/xestoGenome/odXesMuta1.1_alternate_haplotype.fna
+
+>kThetas
+
+for POP in Xm_Deep1 Xm_Deep2 Xm_Deep3 Xm_Deep4 Xm_Shal1 Xm_Shal2; do
+echo "angsd -b ${POP}Bams -GL 1 -P 1 -sites xestoSFSsitesToDo -anc $GENOME_FASTA -doSaf 1 -out ${POP}Out &&\
+realSFS ${POP}Out.saf.idx -fold 1 > ${POP}Out.sfs &&\
+realSFS saf2theta ${POP}Out.saf.idx -sfs ${POP}Out.sfs -outname ${POP} -fold 1 &&\
+thetaStat do_stat ${POP}.thetas.idx" >> kThetas
+done
+
+launcher_creator.py -j kThetas -n kThetas -q shortq7 -t 6:00:00 -e $EMAIL -w 4 -N 1
+
+sbatch kThetas.slurm
+
+
+#after run is fisnished:
+mv *theta* ../theta
+
+```
+
+```scp``` *.out files to local machine
+
+<br>
+
+## G E N E T I C &nbsp; C O N N E C T I V I T Y
+
+### *S. intersepta*
+
+To use BayesAss3 (XXX) we first need to convert our ANGSD output into genotype format 
+
+```{bash, bayesass prep1}
+cd ~/2bRAD/nwgom/sint/ANGSD
+angsd sites index siSitesToDo
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo "angsd -b bamsNoClones -GL 1 -P 1 $FILTERS $TODO -minInd 152 -sites siSitesToDo -out si_BA" > si_BA
+
+launcher_creator.py -j  si_BA -n  si_BA -q shortq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch si_BA.slurm
+
+```
+
+```{bash, sint migration1}
+cd ~/2bRAD/nwgom/sint
+mkdir BA3
+
+cp ../ANGSD/si_BA.bcf .
+
+#need file siPops.txt that lists bams and the sampling site, tab delimited.
+
+bcftools view si_BA.bcf > si_BA.vcf
+
+echo "# VCF Parser questions
+PARSER_FORMAT=VCF
+
+# Only output SNPs with a phred-scaled quality of at least:
+VCF_PARSER_QUAL_QUESTION=
+# Select population definition file:
+VCF_PARSER_POP_FILE_QUESTION=./siPops.txt
+# What is the ploidy of the data?
+VCF_PARSER_PLOIDY_QUESTION=DIPLOID
+# Do you want to include a file with population definitions?
+VCF_PARSER_POP_QUESTION=true
+# Output genotypes as missing if the phred-scale genotype quality is below:
+VCF_PARSER_GTQUAL_QUESTION=
+# Do you want to include non-polymorphic SNPs?
+VCF_PARSER_MONOMORPHIC_QUESTION=false
+# Only output following individuals (ind1, ind2, ind4, ...):
+VCF_PARSER_IND_QUESTION=
+# Only input following regions (refSeqName:start:end, multiple regions: whitespace separated):
+VCF_PARSER_REGION_QUESTION=
+# Output genotypes as missing if the read depth of a position for the sample is below:
+VCF_PARSER_READ_QUESTION=
+# Take most likely genotype if "PL" or "GL" is given in the genotype field?
+VCF_PARSER_PL_QUESTION=true
+# Do you want to exclude loci with only missing data?
+VCF_PARSER_EXC_MISSING_LOCI_QUESTION=true
+
+# Immanc (BayesAss) Writer questions
+WRITER_FORMAT=IMMANC
+
+# Specify the locus/locus combination you want to write to the Immanc (BayesAss) file:
+IMMANC_WRITER_LOCUS_COMBINATION_QUESTION=
+# Specify which data type should be included in the Immanc (BayesAss)) file  (Immanc (BayesAss) can only analyze one data type per file):
+IMMANC_WRITER_DATA_TYPE_QUESTION=SNP" >nwgomSintBA.spid
+
+
+module load pgdspider-2.1.1.2-gcc-9.2.0-ghxvd4c 
+
+pgdSpider=/opt/ohpc/pub/spack/opt/spack/linux-centos7-x86_64/gcc-9.2.0/pgdspider-2.1.1.2-ghxvd4c4ieqngkbutakc7x6j4pfkqm5e/bin/PGDSpider2-cli.jar
+
+echo '#!/bin/bash' > pgdSpider.sh
+echo "java -Xmx1024m -Xms512m -jar $pgdSpider -inputformat VCF -outputformat IMMANC vcf -inputfile si_BA.vcf -outputfile nwgomSintBayesAss.txt -spid nwgomSintBA.spid" >>pgdSpider.sh
+
+sbatch -e pgdSpider.e%j -o pgdSpider.o%j -p mediumq7 --mail-user reckert2017@fau.edu --mail-type=ALL pgdSpider.sh
+
+```
+
+
+```{sh, bayesass2}
+## Default params:
+#MCMC reps: 1,000,000
+#burn in: 100,000
+#sampling freq: 100
+#delta migration (1): 0.1
+#delta allele freq (3): 0.1
+#delta inbreeding (4): 0.1
+
+rm sintNoClones.bcf
+rm sintPops
+
+module load gcc-9.2.0-gcc-8.3.0-ebpgkrt gsl-2.5-gcc-9.2.0-i6lf4jb netlib-lapack-3.9.1-gcc-9.2.0-gcqg2b2 BayesAss/3.0.4.2
+
+# Run a test with verbose [-v] output to see the acceptance rates in the terminal (takes a few minutes to compute)
+# check the output file [less BATest.o*] and kill the job once you get output with acceptance rates [scancel {yourJobID}]
+# After ~5 min you should start seeing output in the BATest.o* file
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000 nwgomSintBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+
+
+#logL: -2083720.11 % done: [0.00] % accepted: (0.35, 0.00, 0.86, 0.06, 0.80)
+
+# we are looking for 20—60% acceptance, ideally somewhere nearer 20—30%
+# relationships between mixing parameters and acceptance rates are inverse
+# defaults are 0.1 (all parameters are scale 0—1)
+# increase [-m] increase [-a] and decrease [-f]
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.14 -a 0.5 -f 0.02 nwgomSintBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+#logL: -2083974.85 % done: [0.00] % accepted: (0.27, 0.00, 0.29, 0.29, 0.80)
+
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.17 -a 0.65 -f 0.023 nwgomSintBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+
+#logL: -2083748.55 % done: [0.00] % accepted: (0.22, 0.00, 0.23, 0.26, 0.80)
+
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.17 -a 0.65 -f 0.025 nwgomSintBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+
+#logL: -2083745.46 % done: [0.00] % accepted: (0.22, 0.00, 0.23, 0.23, 0.80)
+
+```
+
+Make and launch 10 iterations of BayesAss, each in its own run directory so we can keep all trace files (saved as 'BA3trace.txt' and would overwrite if not in separate directories). We are using [-s $RANDOM] to use a random start seed for each independent run
+
+```{sh, bayesass3}
+module load gcc-9.2.0-gcc-8.3.0-ebpgkrt gsl-2.5-gcc-9.2.0-i6lf4jb netlib-lapack-3.9.1-gcc-9.2.0-gcqg2b2 BayesAss/3.0.4.2
+
+for i in {01..10}; do
+echo '#!/bin/bash' > BayesAss$i.sh
+echo BA3SNP -v -u -s $RANDOM -i 15000000 -b 5000000 -n 1000 -m 0.17 -a 0.65 -f 0.025 -t -o fkSintBARun${i}Out.txt ../nwgomSintBayesAss.txt >> BayesAss$i.sh;
+mkdir run$i;
+mv BayesAss$i.sh run$i;
+cd run$i;
+sbatch -e BayesAss$i.e%j -o BayesAss$i.o%j -p longq7 --mem=200GB --exclusive --mail-user reckert2017@fau.edu --mail-type=ALL BayesAss$i.sh
+cd ..;
+done
+
+# after all runs complete copy files to main BayesAss directory
+cd ~/2bRAD/nwgom/sint/BA3
+
+#cp run*/*Out.txt .
+
+for i in {01..10}; do 
+cp run$i/BA3trace.txt sintBA3trace.$i.txt;
+done
+
+```
+
+<br>
+
+### *M. cavernosa*
+ 
+```{bash, bayesass prep mcav}
+cd ~/2bRAD/nwgom/mcav/ANGSD
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 30 -dosnpstat 1 -doHWE 1 -hwe_pval 1e-5 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -snp_pval 1e-5 -minMaf 0.05 -setMinDepthInd 3"
+
+TODO="-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doBcf 1 -doPost 1 -doGlf 2"
+
+echo "angsd -b Mc_1Bams -GL 1 -P 1 $FILTERS $TODO -minInd 76 -sites mcSitesToDo -out Mc_1BA" > mc_1BA
+
+launcher_creator.py -j  mc_1BA -n  mc_1BA -q mediumq7 -t 06:00:00 -e $EMAIL -N 1
+
+sbatch mc_1BA.slurm
+
+```
+
+
+```{bash, mcav migration1}
+cd ~/2bRAD/nwgom/mcav
+mkdir BA3
+
+cd BA3
+
+cp ../ANGSD/Mc_1Bams .
+cp ../ANGSD/Mc_1BA.bcf .
+
+#need file mcPops.txt that lists bams and the sampling site, tab delimited.
+awk -F ' ' 'NR==FNR{a[$1]; next} ($1 in a) || ($2 in a)' Mc_1Bams mcPops.txt > mc1Pops.txt
+
+cat mc1Pops.txt | wc -l
+# 102 — Good!
+
+bcftools view Mc_1BA.bcf > mc_1BA.vcf
+
+echo "# VCF Parser questions
+PARSER_FORMAT=VCF
+
+# Only output SNPs with a phred-scaled quality of at least:
+VCF_PARSER_QUAL_QUESTION=
+# Select population definition file:
+VCF_PARSER_POP_FILE_QUESTION=./mc1Pops.txt
+# What is the ploidy of the data?
+VCF_PARSER_PLOIDY_QUESTION=DIPLOID
+# Do you want to include a file with population definitions?
+VCF_PARSER_POP_QUESTION=true
+# Output genotypes as missing if the phred-scale genotype quality is below:
+VCF_PARSER_GTQUAL_QUESTION=
+# Do you want to include non-polymorphic SNPs?
+VCF_PARSER_MONOMORPHIC_QUESTION=false
+# Only output following individuals (ind1, ind2, ind4, ...):
+VCF_PARSER_IND_QUESTION=
+# Only input following regions (refSeqName:start:end, multiple regions: whitespace separated):
+VCF_PARSER_REGION_QUESTION=
+# Output genotypes as missing if the read depth of a position for the sample is below:
+VCF_PARSER_READ_QUESTION=
+# Take most likely genotype if "PL" or "GL" is given in the genotype field?
+VCF_PARSER_PL_QUESTION=true
+# Do you want to exclude loci with only missing data?
+VCF_PARSER_EXC_MISSING_LOCI_QUESTION=true
+
+# Immanc (BayesAss) Writer questions
+WRITER_FORMAT=IMMANC
+
+# Specify the locus/locus combination you want to write to the Immanc (BayesAss) file:
+IMMANC_WRITER_LOCUS_COMBINATION_QUESTION=
+# Specify which data type should be included in the Immanc (BayesAss)) file  (Immanc (BayesAss) can only analyze one data type per file):
+IMMANC_WRITER_DATA_TYPE_QUESTION=SNP" >nwgomMcavBA.spid
+
+
+module load pgdspider-2.1.1.2-gcc-9.2.0-ghxvd4c 
+
+pgdSpider=/opt/ohpc/pub/spack/opt/spack/linux-centos7-x86_64/gcc-9.2.0/pgdspider-2.1.1.2-ghxvd4c4ieqngkbutakc7x6j4pfkqm5e/bin/PGDSpider2-cli.jar
+
+echo '#!/bin/bash' > pgdSpider.sh
+echo "java -Xmx1024m -Xms512m -jar $pgdSpider -inputformat VCF -outputformat IMMANC vcf -inputfile mc_1BA.vcf -outputfile nwgomMcavBayesAss.txt -spid nwgomMcavBA.spid" >>pgdSpider.sh
+
+sbatch -e pgdSpider.e%j -o pgdSpider.o%j -p mediumq7 --mail-user reckert2017@fau.edu --mail-type=ALL pgdSpider.sh
+
+```
+
+<br>
+
+```{sh, bayesass2 mcav}
+## Default params:
+#MCMC reps: 1,000,000
+#burn in: 100,000
+#sampling freq: 100
+#delta migration (1): 0.1
+#delta allele freq (3): 0.1
+#delta inbreeding (4): 0.1
+
+rm mcavNoClones.bcf
+rm mcPops.txt
+
+module load gcc-9.2.0-gcc-8.3.0-ebpgkrt gsl-2.5-gcc-9.2.0-i6lf4jb netlib-lapack-3.9.1-gcc-9.2.0-gcqg2b2 BayesAss/3.0.4.2
+
+# Run a test with verbose [-v] output to see the acceptance rates in the terminal (takes a few minutes to compute)
+# check the output file [less BATest.o*] and kill the job once you get output with acceptance rates [scancel {yourJobID}]
+# After ~5 min you should start seeing output in the BATest.o* file
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000 nwgomMcavBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+#logL: -351830.37 % done: [0.00] % accepted: (0.54, 0.00, 0.90, 0.15, 0.76)
+
+# we are looking for 20—60% acceptance, ideally somewhere nearer 20—30%
+# relationships between mixing parameters and acceptance rates are inverse
+# defaults are 0.1 (all parameters are scale 0—1)
+# increase [-m] increase [-a] and decrease [-f]
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.3 -a 0.6 -f 0.07 nwgomMcavBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+#logL: -354960.59 % done: [0.00] % accepted: (0.29, 0.00, 0.42, 0.20, 0.76)
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.35 -a 0.7 -f 0.07 nwgomMcavBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+#logL: -354820.88 % done: [0.00] % accepted: (0.26, 0.00, 0.38, 0.22, 0.77)
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.37 -a 0.85 -f 0.07 nwgomMcavBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+#logL: -354529.12 % done: [0.00] % accepted: (0.25, 0.00, 0.34, 0.22, 0.77)
+
+echo '#!/bin/bash' > BATest
+echo BA3SNP -v -i 30000000 -b 10000000 -n 1000  -m 0.43 -a 1 -f 0.07 nwgomMcavBayesAss.txt >> BATest
+
+sbatch -e BATest.e%j -o BATest.o%j -p shortq7 --mail-user reckert2017@fau.edu --mail-type=ALL BATest
+
+
+```
+
+<br>
+
+```{sh, bayesass mcav3}
+module load gcc-9.2.0-gcc-8.3.0-ebpgkrt gsl-2.5-gcc-9.2.0-i6lf4jb netlib-lapack-3.9.1-gcc-9.2.0-gcqg2b2 BayesAss/3.0.4.2
+
+for i in {01..10}; do
+echo '#!/bin/bash' > BayesAss$i.sh
+echo BA3SNP -v -u -s $RANDOM -i 30000000 -b 10000000 -n 1000  -m 0.43 -a 1 -f 0.07 -t -o nwgomMc avBARun${i}Out.txt ../nwgomMcavBayesAss.txt >> BayesAss$i.sh;
+mkdir run$i;
+mv BayesAss$i.sh run$i;
+cd run$i;
+sbatch -e BayesAss$i.e%j -o BayesAss$i.o%j -p longq7 --mem=200GB --exclusive --mail-user reckert2017@fau.edu --mail-type=ALL BayesAss$i.sh
+cd ..;
+done
+
+# after all runs complete copy files to main BayesAss directory
+cd ~/2bRAD/nwgom/mcav/BA3
+
+#cp run*/*Out.txt .
+
+for i in {01..10}; do 
+cp run$i/BA3trace.txt mcavBA3trace.$i.txt;
+done
+
+```
