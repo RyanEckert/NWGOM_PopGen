@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 #### version: `r library(magrittr)` `r Sys.Date() %>% format(format="%B %d, %Y")`
 
-#### [GitHub repository](https://github.com/RyanEckert/Stephanocoenia_FKNMS_PopGen.git){target="_blank"}
+#### [GitHub repository](https://github.com/RyanEckert/NWGOM_PopGen.git){target="_blank"}
 
 ## A B O U T &nbsp; T H I S &nbsp; D O C U M E N T
 

@@ -23,7 +23,7 @@ knit: (function(input, ...) {
 ```
 #### version: `r library(magrittr)` `r Sys.Date() %>% format(format="%d %B, %Y")`
 
-#### [GitHub repository](https://github.com/RyanEckert/Stephanocoenia_FKNMS_PopGen.git){target="_blank"}
+#### [GitHub repository](https://github.com/RyanEckert/NWGOM_PopGen.git){target="_blank"}
 
 # About this document
 
@@ -56,7 +56,7 @@ if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load_gh("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis", "ropensci/rnaturalearthhires", "KarstensLab/microshades")
 
-pacman::p_load("flextable", "cowplot", "car", "ggrepel", "ggspatial", "paletteer", "patchwork", "rnaturalearth", "sf", "Hmisc", "MCMC.OTU", "pairwiseAdonis", "RColorBrewer", "Redmonder", "lubridate", "officer", "adegenet", "dendextend", "gdata", "ggdendro", "hierfstat", "kableExtra", "poppr", "reshape2", "StAMPP", "vcfR", "vegan", "boa", "magick", "sdmpredictors", "ggcorrplot", "tidyverse", "TeachingDemos", "LaplacesDemon", "adespatial", "ggnewscale", "ggbeeswarm", "multcomp", "rstatix", "R.utils", "graph4lg", "ggstance", "ggtreeExtra", "ggtree")
+pacman::p_load("flextable", "cowplot", "car", "ggrepel", "ggspatial", "paletteer", "patchwork", "rnaturalearth", "sf", "Hmisc", "MCMC.OTU", "pairwiseAdonis", "RColorBrewer", "Redmonder", "lubridate", "officer", "adegenet", "dendextend", "gdata", "ggdendro", "hierfstat", "kableExtra", "poppr", "reshape2", "StAMPP", "vcfR", "vegan", "boa", "magick", "sdmpredictors", "ggcorrplot", "tidyverse", "TeachingDemos", "LaplacesDemon", "adespatial", "ggnewscale", "ggbeeswarm", "multcomp", "rstatix", "R.utils", "graph4lg", "ggstance", "ggtreeExtra", "ggtree", "multcompView")
 
 options("scipen" = 10)
 
@@ -724,7 +724,7 @@ ggsave("../figures/extras/xestoCloneDend.png", plot = xestoCloneDend, height = 8
 ```{r, mcav dend no clones, warning=FALSE, message=FALSE}
 mcavBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "M. cavernosa") %>% dplyr::filter(!sample %in% c("MGM072.1", "MGM072.3", "MGM013.2", "MGM013.3", "MGM008.1", "MGM008.2", "MGM010", "MGM024.1", "MGM004", "MGM002.2", "MGM002.3", "MGM038.2", "MGM038.3"))# list of bams files and their populations (tech reps removed)
 mcavBams$sample <- gsub("\\.[1-3]*$", "", mcavBams$sample)
-mcavBams = mcavBams %>% dplyr::mutate(sample = sample) %>% dplyr::select(-sample) %>% dplyr::relocate(sample)
+
 
 mcavBams$bank = factor(mcavBams$bank)
 mcavBams$bank = factor(mcavBams$bank, levels = levels(mcavBams$bank)[c(5, 2, 1, 3, 4)])
@@ -732,12 +732,9 @@ mcavBams$bank = factor(mcavBams$bank, levels = levels(mcavBams$bank)[c(5, 2, 1, 
 mcavBams$depthZone = factor(mcavBams$depthZone)
 mcavBams$depthZone = factor(mcavBams$depthZone, levels = levels(mcavBams$depthZone)[c(2, 1)])
 
-
 mcavMa = as.matrix(read.table("../data/mcav/mcavNoClones.ibsMat")) # reads in IBS matrix produced by ANGSD
 
-
 dimnames(mcavMa) = list(mcavBams[,3],mcavBams[,3])
-
 
 ## admixture K = 2
 #-------------------------------------
@@ -1315,7 +1312,7 @@ mcavSymPermPW
 
 M. cavernosa lineage  vs Symbiodiniaceae B-C distance
 
-```{r, procrustes its2 snps}
+```{r, mcav procrustes its2 snps}
 mcavZooxDist = mcavZooxPermData[ c(5:ncol(mcavZooxPermData))] %>% decostand("normalize") %>% vegdist(method = "bray")
 
 mcavZooxPCoA = cmdscale(mcavZooxDist, eig = TRUE, x.ret = TRUE)
@@ -1588,7 +1585,7 @@ sintPcadmixClust = sintPcadmix %>% mutate(cluster = ifelse(cluster1 < 0.75 & clu
 sintPcadmix = sintPcadmix %>% mutate(sintPcadmixClust)
 
 sintPcadmix$cluster = as.factor(sintPcadmix$cluster)
-levels(sintPcadmix$cluster) = c("Si_Deep", "Si_1", "Admixed")
+levels(sintPcadmix$cluster) = c("Si_1", "Si_2", "Admixed")
 
 sintSiteLineages = sintPcadmix %>% dplyr::select(depthZone, cluster) %>% 
 group_by(depthZone) %>% count(cluster) %>% mutate(Freq = n/sum(n)) %>% apply(2, function(x) gsub("\\s+", "", x)) %>% as.data.frame()
@@ -1639,7 +1636,7 @@ sintPcangsdClust = sintPcAdmix %>% mutate(cluster = ifelse(cluster1 < 0.75 & clu
 sintPcangsd = sintPcangsd %>% mutate(sintPcangsdClust)
 
 sintPcangsd$cluster = as.factor(sintPcangsd$cluster)
-levels(sintPcangsd$cluster) = c("Si_Deep", "Si_1", "Admixed")
+levels(sintPcangsd$cluster) = c("Si_1", "Si_2", "Admixed")
 
 sintBamsClusters = sintPcangsd %>% dplyr::select(sample, cluster) %>% dplyr::arrange(sample) 
 sintBamssamples = read.delim("../data/sint/bamsNoClones", header = FALSE)
@@ -1815,7 +1812,7 @@ sintLineageViolinA = ggplot(data = sintPcangsd, aes(x = cluster, y = depthm)) +
   geom_boxplot(width = 0.1, color = "black", fill = "white", outlier.colour = NA, linewidth = 0.6, alpha = 0.5) +
   geom_segment(data = ticks[c(1:13),], aes(x = x, xend = xend, y = y), color = "black") +
   annotate(geom = "text", x = 2.85, y = 65, label = bquote(italic("F")~" = "~.(sintDF)*"; "~italic("p")~" = 0.131"), size = 3) +
-  annotate(geom = "text", x = sintDepthLetters$x, y = (sintDepthLetters$y - 3), label = sintDepthLetters$grp) +
+  annotate(geom = "text", x = sintDepthLetters$x, y = (sintDepthLetters$y - 4), label = sintDepthLetters$grp) +
   scale_fill_discrete(type = sintKColPal[c(1,2,7)], name = "Lineage") +
   scale_color_discrete(type = sintKColPal[c(1,2,7)], name = "Lineage") +
   xlab("Lineage") +
@@ -1893,8 +1890,8 @@ sintHetPlot
 ### Nucleotide diversity plot
 
 ```{r, sint pi}
-sintNpgList = list(read_tsv("../data/sint/Si_Deep.thetas.idx.pestPG") %>% mutate(lineage = "Si_Deep"),
-               read_tsv("../data/sint/Si_1.thetas.idx.pestPG") %>% mutate(lineage = "Si_1"))
+sintNpgList = list(read_tsv("../data/sint/Si_Deep.thetas.idx.pestPG") %>% mutate(lineage = "Si_1"),
+               read_tsv("../data/sint/Si_1.thetas.idx.pestPG") %>% mutate(lineage = "Si_2"))
 
 
 sintPiAll = purrr::reduce(sintNpgList, rbind) %>% 
@@ -1907,7 +1904,7 @@ sintPiAll$Ne = (sintPiAll$tPps)/(4*2e-8)
 sintPiAll
 
 sintPiAll$lineage = factor(sintPiAll$lineage)
-sintPiAll$lineage = factor(sintPiAll$lineage, levels = levels(sintPiAll$lineage)[c(2,1)])
+
 
 ```
 
@@ -1931,7 +1928,7 @@ sintNuclDivPlot
 ## Symbiodiniaceae
 
 ```{r, sint sym}
-sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3")) %>% dplyr::select("site" = bank, "depth" = depthZone)
+sintData = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "S. intersepta") %>% dplyr::filter(!sample %in% c("SGM007", "SGM010", "SGM013", "SGM027.2", "SGM027.3", "SGM046.1", "SGM046.3", "SGM063", "SGM152.2", "SGM152.3", "SGM169", "SGM177", "SGM179", "SGM186.1", "SGM186.3", "SGM197.2", "SGM197.3", "SGM206.2", "SGM206.3")) %>% dplyr::select(sample, "site" = bank, "depth" = depthZone)
 
 sintZoox = read.delim("../data/sint/sintZooxReads", header = FALSE, check.names = FALSE)
 
@@ -1996,6 +1993,7 @@ sintAdmixOrd = sintAdmix %>% dplyr::select(sample, ord)
 sintPcangsdITS =sintPcangsd %>% dplyr::select(sample, cluster)
 
 sintSym = sintSym %>% left_join(sintAdmixOrd) %>% relocate(ord,.after = depth) %>% left_join(sintPcangsdITS) %>% relocate(cluster, .after = depth)
+
 ```
 
 
@@ -2027,7 +2025,7 @@ sintSymPermPW
 
 *S. intersepta* lineage  vs Symbiodiniaceae B-C distance
 
-```{r, procrustes its2 snps}
+```{r, sint procrustes its2 snps}
 sintZooxDist = sintZooxPermData[ c(5:ncol(sintZooxPermData))] %>% decostand("normalize") %>% vegdist(method = "bray")
 
 sintZooxPCoA = cmdscale(sintZooxDist, eig = TRUE, x.ret = TRUE)
@@ -2120,8 +2118,11 @@ sintZooxPlot
 
 ```{r, all sint plots}
 sintPlot1 = sintStructure + inset_element(sintImg, -0.1, 0.7, 0.3, 1, align_to = "full", ignore_tag = TRUE)
+
 sintPlot2 = (sintPcaPlots) + plot_layout(guides = "collect")
+
 sintPlot3 = (sintLineageViolin+ theme(axis.text.y = element_text(margin = ggplot2::margin(r = -15, unit = "pt")))) + sintHetPlot + sintNuclDivPlot
+
 sintPlot4 = sintAdmixPlot + sintZooxPlot
 
 sintPlots =  sintPlot1 + sintPlot2 + sintPlot3 + sintPlot4 +
@@ -2150,7 +2151,6 @@ ggsave("../figures/figure3.svg", plot = sintPlots, height = 14, width = 12, unit
 ofavBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "O. faveolata") %>% dplyr::filter(!sample %in% c("OGM003", "OGM043", "OGM075", "OGM076", "OGM121", "OGM126", "OGM108.2", "OGM108.3", "OGM024.3", "OGM024.1", "OGM017", "OGM066.2", "OGM066.1", "OGM071", "OGM072", "OGM016", "OGM009", "OGM077", "OGM086", "OGM013", "OGM115", "OGM118", "OGM012", "OGM124", "OGM005"))# list of bams files and their populations (tech reps removed)
 
 ofavBams$sample <- gsub("\\.[1-3]*$", "", ofavBams$sample)
-ofavBams = ofavBams %>% dplyr::mutate(sample = sample) %>% dplyr::select(-sample) %>% dplyr::relocate(sample)
 
 ofavBams$bank = factor(ofavBams$bank)
 ofavBams$bank = factor(ofavBams$bank, levels = levels(mcavBams$bank))
@@ -2579,7 +2579,7 @@ ofFst$site2 = ofFst$Pop2
 
 Construct a heatmap of FST values
 
-```{r, fstPlot}
+```{r, ofav fstPlot}
 ofFstHeatmapA = ggplot(data = ofFst %>% filter(Fst != 0), aes(Pop, Pop2, fill = as.numeric(as.character(Fst)))) +
   geom_tile(color = "white") +
   geom_segment(data = ofFst, aes(x = 0.475, xend = 0.25, y = Pop2, yend = Pop2, color = site2), size = 21.25) + #colored boxes for Y-axis labels
@@ -2813,7 +2813,7 @@ ofavSymPerm
 
 *O. faveolata* lineage  vs Symbiodiniaceae B-C distance
 
-```{r, procrustes its2 snps}
+```{r, ofav procrustes its2 snps}
 ofavZooxDist = ofavZooxPermData[ c(5:ncol(ofavZooxPermData))] %>% decostand("normalize") %>% vegdist(method = "bray")
 
 ofavZooxPCoA = cmdscale(ofavZooxDist, eig = TRUE, x.ret = TRUE)
@@ -2939,7 +2939,6 @@ ggsave("../figures/figure4.svg", plot = ofavPlots, height = 14, width = 12, unit
 xestoBams = read.csv("../data/nwgomMetaData.csv") %>% dplyr::filter(species == "X. muta") %>% dplyr::filter(!sample %in% c("XGM193.2", "XGM193.3", "XGM203.1", "XGM203.3", "XGM158.1", "XGM158.2", "XGM149", "XGM118", "XGM132", "XGM117", "XGM099", "XGM110", "XGM179.2", "XGM179.3", "XGM072.1", "XGM072.3", "XGM034.1", "XGM034.3", "XGM013", "XGM067", "XGM129"))# list of bams files and their populations (tech reps removed)
 
 xestoBams$sample <- gsub("\\.[1-3]*$", "", xestoBams$sample)
-xestoBams = xestoBams %>% dplyr::mutate(sample = sample) %>% dplyr::select(-sample) %>% dplyr::relocate(sample)
 
 xestoBams$bank = factor(xestoBams$bank)
 xestoBams$bank = factor(xestoBams$bank, levels = levels(xestoBams$bank)[c(5, 2, 1, 3, 4)])
@@ -3365,7 +3364,7 @@ xmFst$site2 = xmFst$Pop2
 
 Construct a heatmap of FST values
 
-```{r, fstPlot}
+```{r, xmuta fstPlot}
 xmFstHeatmapA = ggplot(data = xmFst %>% filter(Fst != 0), aes(Pop, Pop2, fill = as.numeric(as.character(Fst)))) +
   geom_tile(color = "white") +
   geom_segment(data = xmFst, aes(x = 0.475, xend = 0.25, y = Pop2, yend = Pop2, color = site2), size = 11.5) + #colored boxes for Y-axis labels
@@ -3528,6 +3527,418 @@ ggsave("../figures/figure5.svg", plot = xestoPlots, height = 14, width = 11, uni
  
 <br><br>
 
+# Genetic connectivity
+
+## *Montastraea cavernosa*
+
+Checking deviance among model runs from BayesAss we ran on HPC
+
+```{r, BA3 mcav traces}
+# fileList = substr(list.files("../data/snps/bayesAss/", "BA3trace.*.txt$"),1,10)
+fileList = substr(list.files("../data/mcav/BA3/", "BA3trace.*.txt$"),1,15)
+
+bayesian_deviance <- function(trace, burnin = 0, sampling.interval = 0){
+  if(burnin == 0) stop('No burnin specified')
+  if(sampling.interval == 0) stop('No sampling interval specified')
+  range <- (trace$State > burnin & trace$State %% sampling.interval == 0)
+  D <- -2*mean(trace$LogProb[range])
+  return(D)
+}
+
+for(i in 1:length(fileList)){
+  assign(fileList[i], read.delim(paste("../data/mcav/BA3/", fileList[i], ".txt", sep = ""))) %>% dplyr::select(-last_col())
+  print(paste(fileList[i], bayesian_deviance(get(fileList[i]), burnin = 10000000, sampling.interval = 1000)))
+}
+
+# [1] "mcavBA3trace.01 669318.0188"
+# [1] "mcavBA3trace.02 668830.0212"
+# [1] "mcavBA3trace.03 669141.0585"
+# [1] "mcavBA3trace.04 668427.0425"
+# [1] "mcavBA3trace.05 668596.3534"
+# [1] "mcavBA3trace.06 668835.2774"
+# [1] "mcavBA3trace.07 668961.4509"
+# [1] "mcavBA3trace.08 668469.9586"
+# [1] "mcavBA3trace.09 668742.6304"
+# [1] "mcavBA3trace.10 668837.7336"
+
+```
+
+All traces have similar deviance (this is good!).
+Using the trace with the lowest deviance (BA3trace.02.txt, in this case)
+
+```{r, BA3}
+mcavBayesAss = read.delim("../data/mcav/BA3/mcavBA3trace.04.txt") %>% filter(State > 10000000) %>% dplyr::select(-State, -LogProb, -X)
+
+mcavBaMean = mcavBayesAss %>% summarise(across(everything(), list(mean))) %>% t() %>% as_tibble() %>% rename(., mean=V1) %>% mutate(pops = colnames(mcavBayesAss))
+
+mcavBaSumm = mcavBayesAss %>% summarise(across(everything(), list(median))) %>% t() %>% as.data.frame() %>% rename(., median=V1) %>% mutate(pops = mcavBaMean$pops, mean = round(mcavBaMean$mean, 3)) %>% relocate(median, .after = mean)
+
+mcavBaSumm$median = round(mcavBaSumm$median, 3)
+
+mcavBaHpd =as.data.frame(t(sapply(mcavBayesAss, emp.hpd)))
+colnames(mcavBaHpd) = c("hpdLow", "hpdHigh")
+mcavBaHpd$pops = rownames(mcavBaHpd)
+
+mcavESS = as.data.frame(sapply(mcavBayesAss, ESS))
+colnames(mcavESS) = "ESS"
+
+mcavBaSumm = mcavBaSumm %>% left_join(mcavBaHpd)
+mcavBaSumm$hpdLow = round(mcavBaSumm$hpdLow, 3)
+mcavBaSumm$hpdHigh = round(mcavBaSumm$hpdHigh, 3)
+mcavBaSumm$ESS = mcavESS$ESS
+
+### FROM BAYESASS: ###
+## Population Index -> Population Label:
+## 0->Geyer_Mesophotic 1->EFGB_Mesophotic 
+## 2->EFGB_Shallow 3->WFGB_Mesophotic 
+## 4->WFGB_Shallow 5->Bright_Mesophotic
+## 6->McGrail_Mesophotic
+
+popi = rep(c("Geyer\nMesophotic", "EFGB\nMesophotic", "EFGB\nShallow", "WFGB\nMesophotic", "WFGB\nShallow", "Bright\nMesophotic", "McGrail\nMesophotic"), each = 7)
+
+popj = rep(c("Geyer\nMesophotic", "EFGB\nMesophotic", "EFGB\nShallow", "WFGB\nMesophotic", "WFGB\nShallow", "Bright\nMesophotic", "McGrail\nMesophotic"), times = 7)
+
+mcavBaSumm = mcavBaSumm %>% mutate(pop.i = popi, pop.j = popj) %>% relocate(c(pop.i, pop.j), .after = pops) %>% dplyr::select(-pops)
+
+mcavBaSumm$pop.i = factor(mcavBaSumm$pop.i)
+mcavBaSumm$pop.i = factor(mcavBaSumm$pop.i, levels = levels(mcavBaSumm$pop.i)[c(7, 3, 6, 2, 1, 4, 5)])
+
+mcavBaSumm$pop.j = factor(mcavBaSumm$pop.j)
+mcavBaSumm$pop.j = factor(mcavBaSumm$pop.j, levels = levels(mcavBaSumm$pop.j)[c(7, 3, 6, 2, 1, 4, 5)])
+
+mcavBaSumm$site.i = word(mcavBaSumm$pop.i, 1, sep = "\n")
+mcavBaSumm$site.i = factor(mcavBaSumm$site.i)
+mcavBaSumm$site.i = factor(mcavBaSumm$site.i, levels = levels(mcavBaSumm$site.i)[c(5, 2, 1, 3, 4)])
+
+mcavBaSumm$site.j = word(mcavBaSumm$pop.j, 1, sep = "\n")
+mcavBaSumm$site.j = factor(mcavBaSumm$site.j)
+mcavBaSumm$site.j = factor(mcavBaSumm$site.j, levels = levels(mcavBaSumm$site.j)[c(5, 2, 1, 3, 4)])
+
+mcavBaSumm$depth.i = word(mcavBaSumm$pop.i, 2, sep = "\n")
+mcavBaSumm$depth.i = factor(mcavBaSumm$depth.i)
+mcavBaSumm$depth.i = factor(mcavBaSumm$depth.i, levels = levels(mcavBaSumm$depth.i)[c(2, 1)])
+
+mcavBaSumm$depth.j = word(mcavBaSumm$pop.j, 2, sep = "\n")
+mcavBaSumm$depth.j = factor(mcavBaSumm$depth.j)
+mcavBaSumm$depth.j = factor(mcavBaSumm$depth.j, levels = levels(mcavBaSumm$depth.j)[c(2, 1)])
+
+```
+
+
+```{r, bayesAss means}
+#All sites (excluding self retention)
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j) %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Global")
+
+#mesophotic sources
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.j == "Mesophotic") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Mesophotic Source") %>% bind_rows(mcavBaMeans, .)
+
+#shallow sources
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.j == "Shallow") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Shallow Source") %>% bind_rows(mcavBaMeans, .)
+
+#mesophotic sinks
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.i == "Mesophotic") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.)))  %>% mutate(dataset = "Mesophotic Sink") %>% bind_rows(mcavBaMeans, .)
+
+#shallow sinks
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.i == "Shallow") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.)))  %>% mutate(dataset = "Shallow Sink") %>% bind_rows(mcavBaMeans, .)
+
+#mesophotic -> shallow
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.j == "Mesophotic", depth.i == "Shallow") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Mesophotic -> Shallow") %>% bind_rows(mcavBaMeans, .)
+
+#mesophotic -> mesophotic
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.j == "Mesophotic", depth.i == "Mesophotic") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Mesophotic -> Mesophotic") %>% bind_rows(mcavBaMeans, .)
+
+#shallow -> mesophotic
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.j == "Shallow", depth.i == "Mesophotic") %>% summarise(mean = mean(.$mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Shallow -> Mesophotic") %>% bind_rows(mcavBaMeans, .)
+
+#shallow -> shallow
+mcavBaMeans = mcavBaSumm %>% filter(pop.i != pop.j, depth.j == "Shallow", depth.i == "Shallow") %>% summarise(mean = round(mean(.$mean), 5), sd = round(sd(.$mean), 5), se = round(sd(.$mean)/sqrt(nrow(.)), 3)) %>% mutate(dataset = paste("Shallow -> Shallow")) %>% bind_rows(mcavBaMeans, .) %>% relocate(dataset, .before = mean) %>% as.data.frame()
+
+mcavBaMeans[,c(2:4)] = mcavBaMeans[,c(2:4)] %>% round(4)
+
+mcavBaMeans
+
+mcavBaMeansPub = mcavBaMeans %>%
+  flextable() %>%
+  flextable::compose(part = "header", j = "dataset", value = as_paragraph("Dataset")) %>%
+  flextable::compose(part = "header", j = "mean", value = as_paragraph(as_i("m"))) %>%
+  flextable::compose(part = "header", j = "sd", value = as_paragraph("SD")) %>%
+  flextable::compose(part = "header", j = "se", value = as_paragraph("SEM")) %>%
+  flextable::font(fontname = "Times New Roman", part = "all") %>%
+  flextable::fontsize(size = 10, part = "all") %>%
+  flextable::bold(part = "header") %>%
+  flextable::align(align = "left", part = "all") %>%
+  flextable::autofit()
+
+table = read_docx()
+table = body_add_flextable(table, value = mcavBaMeansPub)
+print(table, target = "../tables/table1.docx")
+
+mcavBaMeansPub
+
+```
+
+```{r, migrationPlots}
+mcavBaSumm$mean = sprintf('%.3f', mcavBaSumm$mean)
+mcavBaSumm$mean2 = mcavBaSumm$mean
+mcavBaSumm$hpdLow = sprintf('%.3f', mcavBaSumm$hpdLow)
+mcavBaSumm$hpdHigh = sprintf('%.3f', mcavBaSumm$hpdHigh)
+
+mcavBaLabs = tibble(pop.i = unique(mcavBaSumm$pop.i), pop.j = unique(mcavBaSumm$pop.j))
+
+mcavMigrateA = ggplot(data = mcavBaSumm, aes(pop.i, pop.j))+
+  geom_tile(data = subset(mcavBaSumm, subset = mcavBaSumm$mean2>0.65), fill = "gray35", color = "white") +
+  geom_segment(data = mcavBaSumm, aes(x = 0.4755, xend = -0.42, y = pop.j, yend = pop.j, color = pop.j), size = 14) +
+  geom_segment(data = mcavBaSumm, aes(x = pop.i, xend = pop.i, y = 0.45, yend = -0.425, color = pop.i), size = 32) +
+  scale_color_manual(values = gomPal[c(1:2, 1:5)], guide = NULL) +
+
+  guides(fill = guide_colorbar(ticks.colour = "black", barwidth = 1, barheight = 10, frame.colour = "black")) +
+  # new_scale("fill") +
+  geom_tile(data = subset(mcavBaSumm, subset = mcavBaSumm$mean<0.65), aes(fill = as.numeric(as.character(mean))), color = "white") +
+  scale_fill_gradientn(colours = paletteer_c("viridis::mako", n = 10, direction = -1)[c(1:7)], limit = c(0,0.23), space = "Lab", name = expression(paste(italic("m"))), na.value = "transparent",  guide = "colourbar", values = c(0, 0.05, 0.1, 0.15, 0.2,0.5,0.75,1)) +
+  # scale_fill_gradientn(colours = paletteer_d("khroma::smoothrainbow"), limit = c(0,0.27), space = "Lab", name = expression(paste(italic("m"))), na.value = "transparent",  guide = "colourbar", values = c(0, 0.05, 0.1, 0.15, 0.2,0.5,0.75,1)) +
+  geom_text(data = mcavBaSumm, aes(x = pop.i, y = pop.j, label = paste(mean, "\n", sep = "")), color = ifelse(mcavBaSumm$mean > 0.6, "white", "gray5"), fontface = ifelse(as.numeric(mcavBaSumm$hpdLow)>0, "bold", "plain"), size = ifelse(as.numeric(mcavBaSumm$hpdLow)>0, 4.75, 4)) +
+  geom_text(data = mcavBaSumm, aes(x = pop.i, y = pop.j, label = paste("\n(",hpdLow,"–",hpdHigh, ")", sep = "")), color = ifelse(mcavBaSumm$mean > 0.6, "white", "gray5"), size = 3.25) +
+  
+  geom_text(data = (mcavBaLabs %>% filter(pop.j %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), x = -.02, aes(y = pop.j, label = pop.j), size = 3.75, color = "#FFFFFF", family = "sans") +
+  geom_text(data = (mcavBaLabs %>% filter(!pop.j %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), x = -.02, aes(y = pop.j, label = pop.j), size = 3.75, color = "#000000", family = "sans") +
+  geom_text(data = (mcavBaLabs %>% filter(pop.i %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), y = -.01, aes(x = pop.i, label = pop.i), size = 3.75, color = "#FFFFFF", family = "sans") +
+  geom_text(data = (mcavBaLabs %>% filter(!pop.i %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), y = -.01, aes(x = pop.i, label = pop.i), size = 3.75, color = "#000000", family = "sans") +
+  
+  labs(x = "Sink", y = "Source") +
+  scale_y_discrete(limits = rev(levels(mcavBaSumm$pop.i))[c(1:8)], position = "left") +
+  coord_cartesian(xlim = c(1, 8), ylim = c(1, 8), clip = "off") +
+  theme_minimal()
+
+mcavMigrate = mcavMigrateA + theme(
+  axis.text.x = element_text(vjust = 1, size = 12, hjust = 0.5, color = NA),
+  axis.text.y = element_text(size = 10, color = NA),
+   axis.title.x = element_text(size = 14, hjust = 0.425),
+  axis.title.y = element_text(size = 14, hjust = 0.425),
+  panel.grid.major = element_blank(),
+  axis.ticks = element_blank(),
+  # legend.position = c(1.055, 0.5),
+  legend.direction = "vertical",
+  legend.title = element_text(size = 12, face = "bold")
+)
+
+mcavMigrate
+
+
+```
+
+## *Stephanocoenia intersepta*
+
+Checking deviance among model runs from BayesAss we ran on HPC
+
+```{r, BA3 sint traces}
+# fileList = substr(list.files("../data/snps/bayesAss/", "BA3trace.*.txt$"),1,10)
+fileList = substr(list.files("../data/sint/BA3/", "BA3trace.*.txt$"),1,15)
+
+bayesian_deviance <- function(trace, burnin = 0, sampling.interval = 0){
+  if(burnin == 0) stop('No burnin specified')
+  if(sampling.interval == 0) stop('No sampling interval specified')
+  range <- (trace$State > burnin & trace$State %% sampling.interval == 0)
+  D <- -2*mean(trace$LogProb[range])
+  return(D)
+}
+
+for(i in 1:length(fileList)){
+  assign(fileList[i], read.delim(paste("../data/sint/BA3/", fileList[i], ".txt", sep = ""))) %>% dplyr::select(-last_col())
+  print(paste(fileList[i], bayesian_deviance(get(fileList[i]), burnin = 5000000, sampling.interval = 1000)))
+}
+
+# [1] "sintBA3trace.01 4095847.462"
+# [1] "sintBA3trace.02 4094678.242"
+# [1] "sintBA3trace.03 4095399.988"
+# [1] "sintBA3trace.04 4095630.518"
+# [1] "sintBA3trace.05 4095470.046"
+# [1] "sintBA3trace.06 4094276.6"
+# [1] "sintBA3trace.07 4095140.89"
+# [1] "sintBA3trace.08 4095926.754"
+# [1] "sintBA3trace.09 4095283.68"
+# [1] "sintBA3trace.10 4095434.772"
+
+```
+
+All traces have similar deviance (this is good!).
+Using the trace with the lowest deviance (BA3trace.02.txt, in this case)
+
+```{r, sint BA3}
+sintBayesAss = read.delim("../data/sint/BA3/sintBA3trace.06.txt") %>% filter(State > 5000000) %>% dplyr::select(-State, -LogProb, -X)
+
+sintBaMean = sintBayesAss %>% summarise(across(everything(), list(mean))) %>% t() %>% as_tibble() %>% rename(., mean=V1) %>% mutate(pops = colnames(sintBayesAss))
+
+sintBaSumm = sintBayesAss %>% summarise(across(everything(), list(median))) %>% t() %>% as.data.frame() %>% rename(., median=V1) %>% mutate(pops = sintBaMean$pops, mean = round(sintBaMean$mean, 3)) %>% relocate(median, .after = mean)
+
+sintBaSumm$median = round(sintBaSumm$median, 3)
+
+sintBaHpd =as.data.frame(t(sapply(sintBayesAss, emp.hpd)))
+colnames(sintBaHpd) = c("hpdLow", "hpdHigh")
+sintBaHpd$pops = rownames(sintBaHpd)
+
+sintESS = as.data.frame(sapply(sintBayesAss, ESS))
+colnames(sintESS) = "ESS"
+
+sintBaSumm = sintBaSumm %>% left_join(sintBaHpd)
+sintBaSumm$hpdLow = round(sintBaSumm$hpdLow, 3)
+sintBaSumm$hpdHigh = round(sintBaSumm$hpdHigh, 3)
+sintBaSumm$ESS = sintESS$ESS
+
+### FROM BAYESASS: ###
+## Population Index -> Population Label:
+## 0->Geyer_Mesophotic 1->EFGB_Mesophotic 
+## 2->EFGB_Shallow 3->WFGB_Mesophotic 
+## 4->WFGB_Shallow 5->Bright_Mesophotic
+## 6->McGrail_Mesophotic
+
+popi = rep(c("Geyer\nMesophotic", "EFGB\nMesophotic", "EFGB\nShallow", "WFGB\nMesophotic", "WFGB\nShallow", "Bright\nMesophotic", "McGrail\nMesophotic"), each = 7)
+
+popj = rep(c("Geyer\nMesophotic", "EFGB\nMesophotic", "EFGB\nShallow", "WFGB\nMesophotic", "WFGB\nShallow", "Bright\nMesophotic", "McGrail\nMesophotic"), times = 7)
+
+sintBaSumm = sintBaSumm %>% mutate(pop.i = popi, pop.j = popj) %>% relocate(c(pop.i, pop.j), .after = pops) %>% dplyr::select(-pops)
+
+sintBaSumm$pop.i = factor(sintBaSumm$pop.i)
+sintBaSumm$pop.i = factor(sintBaSumm$pop.i, levels = levels(sintBaSumm$pop.i)[c(7, 3, 6, 2, 1, 4, 5)])
+
+sintBaSumm$pop.j = factor(sintBaSumm$pop.j)
+sintBaSumm$pop.j = factor(sintBaSumm$pop.j, levels = levels(sintBaSumm$pop.j)[c(7, 3, 6, 2, 1, 4, 5)])
+
+sintBaSumm$site.i = word(sintBaSumm$pop.i, 1, sep = "\n")
+sintBaSumm$site.i = factor(sintBaSumm$site.i)
+sintBaSumm$site.i = factor(sintBaSumm$site.i, levels = levels(sintBaSumm$site.i)[c(5, 2, 1, 3, 4)])
+
+sintBaSumm$site.j = word(sintBaSumm$pop.j, 1, sep = "\n")
+sintBaSumm$site.j = factor(sintBaSumm$site.j)
+sintBaSumm$site.j = factor(sintBaSumm$site.j, levels = levels(sintBaSumm$site.j)[c(5, 2, 1, 3, 4)])
+
+sintBaSumm$depth.i = word(sintBaSumm$pop.i, 2, sep = "\n")
+sintBaSumm$depth.i = factor(sintBaSumm$depth.i)
+sintBaSumm$depth.i = factor(sintBaSumm$depth.i, levels = levels(sintBaSumm$depth.i)[c(2, 1)])
+
+sintBaSumm$depth.j = word(sintBaSumm$pop.j, 2, sep = "\n")
+sintBaSumm$depth.j = factor(sintBaSumm$depth.j)
+sintBaSumm$depth.j = factor(sintBaSumm$depth.j, levels = levels(sintBaSumm$depth.j)[c(2, 1)])
+
+```
+
+
+```{r, sint bayesAss means}
+#All sites (excluding self retention)
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j) %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Global")
+
+#mesophotic sources
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.j == "Mesophotic") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Mesophotic Source") %>% bind_rows(sintBaMeans, .)
+
+#shallow sources
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.j == "Shallow") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Shallow Source") %>% bind_rows(sintBaMeans, .)
+
+#mesophotic sinks
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.i == "Mesophotic") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.)))  %>% mutate(dataset = "Mesophotic Sink") %>% bind_rows(sintBaMeans, .)
+
+#shallow sinks
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.i == "Shallow") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.)))  %>% mutate(dataset = "Shallow Sink") %>% bind_rows(sintBaMeans, .)
+
+#mesophotic -> shallow
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.j == "Mesophotic", depth.i == "Shallow") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Mesophotic -> Shallow") %>% bind_rows(sintBaMeans, .)
+
+#mesophotic -> mesophotic
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.j == "Mesophotic", depth.i == "Mesophotic") %>% summarise(mean = mean(mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Mesophotic -> Mesophotic") %>% bind_rows(sintBaMeans, .)
+
+#shallow -> mesophotic
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.j == "Shallow", depth.i == "Mesophotic") %>% summarise(mean = mean(.$mean), sd = sd(.$mean), se = sd(.$mean)/sqrt(nrow(.))) %>% mutate(dataset = "Shallow -> Mesophotic") %>% bind_rows(sintBaMeans, .)
+
+#shallow -> shallow
+sintBaMeans = sintBaSumm %>% filter(pop.i != pop.j, depth.j == "Shallow", depth.i == "Shallow") %>% summarise(mean = round(mean(.$mean), 5), sd = round(sd(.$mean), 5), se = round(sd(.$mean)/sqrt(nrow(.)), 3)) %>% mutate(dataset = paste("Shallow -> Shallow")) %>% bind_rows(sintBaMeans, .) %>% relocate(dataset, .before = mean) %>% as.data.frame()
+
+sintBaMeans[,c(2:4)] = sintBaMeans[,c(2:4)] %>% round(4)
+
+sintBaMeans
+
+sintBaMeansPub = sintBaMeans %>%
+  flextable() %>%
+  flextable::compose(part = "header", j = "dataset", value = as_paragraph("Dataset")) %>%
+  flextable::compose(part = "header", j = "mean", value = as_paragraph(as_i("m"))) %>%
+  flextable::compose(part = "header", j = "sd", value = as_paragraph("SD")) %>%
+  flextable::compose(part = "header", j = "se", value = as_paragraph("SEM")) %>%
+  flextable::font(fontname = "Times New Roman", part = "all") %>%
+  flextable::fontsize(size = 10, part = "all") %>%
+  flextable::bold(part = "header") %>%
+  flextable::align(align = "left", part = "all") %>%
+  flextable::autofit()
+
+table = read_docx()
+table = body_add_flextable(table, value = sintBaMeansPub)
+print(table, target = "../tables/table2.docx")
+
+sintBaMeansPub
+
+```
+
+```{r, sint migrationPlots}
+sintBaSumm$mean = sprintf('%.3f', sintBaSumm$mean)
+sintBaSumm$mean2 = sintBaSumm$mean
+sintBaSumm$hpdLow = sprintf('%.3f', sintBaSumm$hpdLow)
+sintBaSumm$hpdHigh = sprintf('%.3f', sintBaSumm$hpdHigh)
+
+sintBaLabs = tibble(pop.i = unique(sintBaSumm$pop.i), pop.j = unique(sintBaSumm$pop.j))
+
+sintMigrateA = ggplot(data = sintBaSumm, aes(pop.i, pop.j))+
+  geom_tile(data = subset(sintBaSumm, subset = sintBaSumm$mean2>0.65), fill = "gray35", color = "white") +
+  geom_segment(data = sintBaSumm, aes(x = 0.4755, xend = -0.42, y = pop.j, yend = pop.j, color = pop.j), size = 14) +
+  geom_segment(data = sintBaSumm, aes(x = pop.i, xend = pop.i, y = 0.45, yend = -0.425, color = pop.i), size = 32) +
+  scale_color_manual(values = gomPal[c(1:2, 1:5)], guide = NULL) +
+
+  guides(fill = guide_colorbar(ticks.colour = "black", barwidth = 1, barheight = 10, frame.colour = "black")) +
+  # new_scale("fill") +
+  geom_tile(data = subset(sintBaSumm, subset = sintBaSumm$mean<0.65), aes(fill = as.numeric(as.character(mean))), color = "white") +
+  scale_fill_gradientn(colours = paletteer_c("viridis::mako", n = 10, direction = -1)[c(1:7)], limit = c(0,0.23), space = "Lab", name = expression(paste(italic("m"))), na.value = "transparent",  guide = "colourbar", values = c(0, 0.05, 0.1, 0.15, 0.2,0.5,0.75,1)) +
+  # scale_fill_gradientn(colours = paletteer_d("khroma::smoothrainbow"), limit = c(0,0.27), space = "Lab", name = expression(paste(italic("m"))), na.value = "transparent",  guide = "colourbar", values = c(0, 0.05, 0.1, 0.15, 0.2,0.5,0.75,1)) +
+  geom_text(data = sintBaSumm, aes(x = pop.i, y = pop.j, label = paste(mean, "\n", sep = "")), color = ifelse(sintBaSumm$mean > 0.6, "white", "gray5"), fontface = ifelse(as.numeric(sintBaSumm$hpdLow)>0, "bold", "plain"), size = ifelse(as.numeric(sintBaSumm$hpdLow)>0, 4.75, 4)) +
+  geom_text(data = sintBaSumm, aes(x = pop.i, y = pop.j, label = paste("\n(",hpdLow,"–",hpdHigh, ")", sep = "")), color = ifelse(sintBaSumm$mean > 0.6, "white", "gray5"), size = 3.25) +
+  
+  geom_text(data = (sintBaLabs %>% filter(pop.j %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), x = -.02, aes(y = pop.j, label = pop.j), size = 3.75, color = "#FFFFFF", family = "sans") +
+  geom_text(data = (sintBaLabs %>% filter(!pop.j %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), x = -.02, aes(y = pop.j, label = pop.j), size = 3.75, color = "#000000", family = "sans") +
+  geom_text(data = (sintBaLabs %>% filter(pop.i %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), y = -.01, aes(x = pop.i, label = pop.i), size = 3.75, color = "#FFFFFF", family = "sans") +
+  geom_text(data = (sintBaLabs %>% filter(!pop.i %in% c("Tortugas Bank\nMesophotic", "Tortugas Bank\nShallow", "Riley's Hump\nMesophotic", "Riley's Hump\nShallow"))), y = -.01, aes(x = pop.i, label = pop.i), size = 3.75, color = "#000000", family = "sans") +
+  
+  labs(x = "Sink", y = "Source") +
+  scale_y_discrete(limits = rev(levels(sintBaSumm$pop.i))[c(1:8)], position = "left") +
+  coord_cartesian(xlim = c(1, 8), ylim = c(1, 8), clip = "off") +
+  theme_minimal()
+
+sintMigrate = sintMigrateA + theme(
+  axis.text.x = element_text(vjust = 1, size = 12, hjust = 0.5, color = NA),
+  axis.text.y = element_text(size = 10, color = NA),
+  axis.title.x = element_text(size = 14, hjust = 0.425),
+  axis.title.y = element_text(size = 14, hjust = 0.425),
+  panel.grid.major = element_blank(),
+  axis.ticks = element_blank(),
+  # legend.position = c(1.055, 0.5),
+  legend.direction = "vertical",
+  legend.title = element_text(size = 12, face = "bold")
+)
+
+sintMigrate
+
+```
+
+## Put plots together
+
+```{r, migrate plots}
+migratePlots = mcavMigrate + inset_element(mcavImg, -0.02, 0.85, 0.17, 1.0, align_to = "full", ignore_tag = TRUE) + 
+  sintMigrate +  inset_element(sintImg, -0.02, 0.85, 0.17, 1.0, align_to = "full", ignore_tag = TRUE) +
+    plot_annotation(tag_levels = c("A")) +
+    plot_layout(ncol = 1, guides = "collect") &
+    theme(plot.tag = element_text(size = 18),
+          legend.box.margin = unit(units = "cm",c(0,0,0,-2)),
+          legend.key = element_blank(),
+          legend.background = element_blank())
+
+
+ggsave("../figures/figure6.png", plot = migratePlots, height = 9.5, width = 9.5, units = "in", dpi = 300)
+
+```
+
 
 # Other plots
 
@@ -3542,7 +3953,7 @@ gomTrees = mcavStructure + inset_element(mcavImg, 0.02, 0.85, 0.17, 1.0, align_t
           legend.key = element_blank(),
           legend.background = element_blank())
 
-# gomTrees
+gomTrees
 
 ggsave("../figures/extras/nwgom_trees.png", plot = gomTrees, dpi = 300, height = 10, width = 12, units = "in")
 
