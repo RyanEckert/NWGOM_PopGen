@@ -8,11 +8,11 @@
 ### version: 04 October, 2024
 
 ------------------------------------------------------------------------
-<img src="figures/figure1.png" width="450"/> <img src="figures/extras/nwgom.png" width="450"/> 
+<img src="figures/figure1.png" width="450"/> <img src="figures/extras/nwgom_structure.png" width="450"/> 
 
 This repository contains scripts and data associated with the publication:
 
-**[Eckert RJ, Sturm AB, Pantoni GS, Voss JD (in prep). Genetic insights of key habitat-forming coral and sponge populations in Flower Garden Banks National Marine Sanctuary.](https://)**
+**[Eckert RJ, Sturm AB, Pantoni GS, Herrera S, Voss JD (in prep). Genetic insights of key habitat-forming coral and sponge populations in Flower Garden Banks National Marine Sanctuary.](https://)**
 
 ------------------------------------------------------------------------
 
