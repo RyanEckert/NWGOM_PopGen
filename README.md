@@ -1,11 +1,11 @@
 # NWGOM_PopGen
  Population genetics of benthic invertebrates in FGBNMS
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo/xxxxx.svg)](https://doi.org/10.5281/zenodo.xxxx)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14861702.svg)](https://doi.org/10.5281/zenodo.14861702)
 
 ### Ryan Eckert -- <ryan.j.eckert@gmail.com>
 ### [ryanjeckert.weebly.com](https://ryanjeckert.weebly.com)
-### version: 04 October, 2024
+### version: 12 February, 2025
 
 ------------------------------------------------------------------------
 <img src="figures/figure1.png" width="400"/> <img src="figures/extras/nwgom_structure.png" height="400"/> 
