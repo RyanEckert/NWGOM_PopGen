@@ -8,7 +8,7 @@
 ### version: 04 October, 2024
 
 ------------------------------------------------------------------------
-<img src="figures/figure1.png" width="650"/> <img src="figures/extra/nwgom.png" width="650"/> 
+<img src="figures/figure1.png" width="450"/> <img src="figures/extras/nwgom.png" width="450"/> 
 
 This repository contains scripts and data associated with the publication:
 
