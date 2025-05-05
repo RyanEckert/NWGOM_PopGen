@@ -5,7 +5,7 @@
 
 ### Ryan Eckert -- <ryan.j.eckert@gmail.com>
 ### [ryanjeckert.weebly.com](https://ryanjeckert.weebly.com)
-### version: 12 February, 2025
+### version: 05 May, 2025
 
 ------------------------------------------------------------------------
 <img src="figures/figure1.png" width="400"/> <img src="figures/extras/nwgom_structure.png" height="400"/> 
