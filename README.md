@@ -29,5 +29,6 @@ This repository contains scripts and data associated with the publication:
 2.  [Protocol for 2bRAD wet lab (based on https://github.com/z0on/2bRAD_denovo)](https://ryaneckert.github.io/labProtocols/2bRAD/)
 3. [2bRAD analyses (adapted from https://github.com/z0on/2bRAD_denovo)](https://ryaneckert.github.io/NWGOM_PopGen/code/)
 4.  [Statistical analysis of SNP data](https://ryaneckert.github.io/NWGOM_PopGen/data/)
+5.  [Sequencing data (PRJNA1222908](https://www.ncbi.nlm.nih.gov/biosample?Db=biosample&DbFrom=bioproject&Cmd=Link&LinkName=bioproject_biosample&LinkReadableName=BioSample&ordinalpos=1&IdsFromResult=1222908) [and PRJNA1024506)](https://www.ncbi.nlm.nih.gov/biosample?Db=biosample&DbFrom=bioproject&Cmd=Link&LinkName=bioproject_biosample&LinkReadableName=BioSample&ordinalpos=1&IdsFromResult=1024506)
 
 ------------------------------------------------------------------------
